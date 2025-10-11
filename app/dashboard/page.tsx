@@ -89,6 +89,73 @@ export default function DashboardPage() {
 
         {/* Beach Map */}
         <BeachMap />
+
+        {/* Secciones resumen */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+          {/* Eventos */}
+          <Card className="flex flex-col justify-between">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Eventos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">Participa en jornadas de limpieza y actividades ambientales.</p>
+              <button
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition"
+                onClick={() => router.push('/events')}
+              >
+                Ver más
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* EcoShare */}
+          <Card className="flex flex-col justify-between">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">EcoShare</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">Comparte logros, fotos y experiencias con la comunidad EcoPlaya.</p>
+              <button
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition"
+                onClick={() => router.push('/ecoshare')}
+              >
+                Ver más
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* Reportes */}
+          <Card className="flex flex-col justify-between">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Reportes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">Reporta problemas ambientales o visualiza reportes recientes.</p>
+              <button
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition"
+                onClick={() => router.push('/reports')}
+              >
+                Ver más
+              </button>
+            </CardContent>
+          </Card>
+
+          {/* Recompensas */}
+          <Card className="flex flex-col justify-between">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Recompensas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">Canjea tus puntos por descuentos, premios y experiencias.</p>
+              <button
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition"
+                onClick={() => router.push('/rewards')}
+              >
+                Ver más
+              </button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

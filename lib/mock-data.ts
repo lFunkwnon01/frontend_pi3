@@ -195,7 +195,7 @@ export const mockEvents: Event[] = [
     maxVolunteers: 100,
     organizer: "Municipalidad de Miraflores",
     organizerId: "4",
-    image: "/beach-cleanup-volunteers.png",
+  image: "/evento_1.jpeg", // Imagen 1: evento_1.jpeg
     points: 70,
     status: "approved",
     chatId: "chat-1",
@@ -214,7 +214,7 @@ export const mockEvents: Event[] = [
     maxVolunteers: 50,
     organizer: "EcoVoluntarios Perú",
     organizerId: "3",
-    image: "/dune-restoration-planting.jpg",
+  image: "/evento_2.jpg", // Imagen 2: evento_2.jpg
     points: 80,
     status: "approved",
     chatId: "chat-2",
@@ -233,7 +233,7 @@ export const mockEvents: Event[] = [
     maxVolunteers: 60,
     organizer: "EcoPlaya Foundation",
     organizerId: "3",
-    image: "/placeholder.jpg",
+  image: "/evento_3.jpeg", // Imagen 3: evento_3.jpeg
     points: 50,
     status: "approved",
     chatId: "chat-3",
@@ -378,7 +378,7 @@ export const mockRewards: Reward[] = [
     points: 150,
     category: "discount",
     partner: "Café Oceánico",
-    image: "/coffee-shop-ocean.jpg",
+  image: "/recompensas_1.jpg",
     available: true,
   },
   {
@@ -408,7 +408,7 @@ export const mockRewards: Reward[] = [
     points: 300,
     category: "discount",
     partner: "EcoStore",
-    image: "/placeholder.jpg",
+  image: "/recompensa_4.jpg",
     available: true,
   },
   {
@@ -418,7 +418,7 @@ export const mockRewards: Reward[] = [
     points: 450,
     category: "discount",
     partner: "EcoTools",
-    image: "/placeholder.jpg",
+  image: "/recompensa_5.jpg",
     available: true,
   },
 ]
