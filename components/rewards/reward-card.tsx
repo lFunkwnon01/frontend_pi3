@@ -93,6 +93,11 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
       <CardHeader>
         <CardTitle className="text-lg">{reward.title}</CardTitle>
         <CardDescription>{reward.description}</CardDescription>
+        {reward.title.includes("Kit de Limpieza Profesional") && (
+          <div className="mt-2 text-xs text-primary font-semibold">
+            Incluye: trapeador tipo escoba, balde, recogedor, esponja, desinfectante, guantes y trapo (según imagen).
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">

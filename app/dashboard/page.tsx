@@ -107,7 +107,6 @@ export default function DashboardPage() {
               </button>
             </CardContent>
           </Card>
-
           {/* EcoShare */}
           <Card className="flex flex-col justify-between">
             <CardHeader>
@@ -123,7 +122,6 @@ export default function DashboardPage() {
               </button>
             </CardContent>
           </Card>
-
           {/* Reportes */}
           <Card className="flex flex-col justify-between">
             <CardHeader>
@@ -139,7 +137,6 @@ export default function DashboardPage() {
               </button>
             </CardContent>
           </Card>
-
           {/* Recompensas */}
           <Card className="flex flex-col justify-between">
             <CardHeader>
@@ -156,6 +153,76 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Sección educativa: capacitación y aprendizaje (ahora al fondo) */}
+        <section className="py-12">
+          <h2 className="text-3xl font-bold text-primary mb-8">Capacitación y Aprendizaje</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="flex flex-col">
+              <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+                <img src="/placeholder-video.jpg" alt="Video educativo" className="h-full w-full object-cover opacity-80" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/80 rounded-full p-3 shadow">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7L8 5z" fill="#2563eb"/></svg>
+                  </div>
+                </div>
+              </div>
+              <CardHeader>
+                <CardTitle>¿Cómo limpiar playas de forma segura?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm mb-2">Aprende los pasos y precauciones para realizar una limpieza efectiva y segura en la playa.</p>
+                <ul className="list-disc ml-4 text-muted-foreground text-xs space-y-1">
+                  <li>Usa guantes y tapaboca en todo momento.</li>
+                  <li>Evita el contacto directo con objetos punzantes o cortantes.</li>
+                  <li>Desinfecta tus manos al terminar la jornada.</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+                <img src="/placeholder-video.jpg" alt="Video educativo" className="h-full w-full object-cover opacity-80" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/80 rounded-full p-3 shadow">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7L8 5z" fill="#2563eb"/></svg>
+                  </div>
+                </div>
+              </div>
+              <CardHeader>
+                <CardTitle>Prevención de riesgos y focos infecciosos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm mb-2">Consejos para evitar accidentes y enfermedades durante las jornadas de limpieza.</p>
+                <ul className="list-disc ml-4 text-muted-foreground text-xs space-y-1">
+                  <li>Evita tocar jeringas, vidrios rotos o residuos médicos.</li>
+                  <li>Usa calzado cerrado para evitar lesiones.</li>
+                  <li>Reporta cualquier foco infeccioso a las autoridades.</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+              <div className="relative h-48 w-full bg-gray-200 flex items-center justify-center">
+                <img src="/placeholder-video.jpg" alt="Video educativo" className="h-full w-full object-cover opacity-80" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/80 rounded-full p-3 shadow">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7L8 5z" fill="#2563eb"/></svg>
+                  </div>
+                </div>
+              </div>
+              <CardHeader>
+                <CardTitle>Malaguas y medusas en la costa peruana</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm mb-2">Identifica riesgos y aprende cómo actuar ante la presencia de estos animales.</p>
+                <ul className="list-disc ml-4 text-muted-foreground text-xs space-y-1">
+                  <li>Evita el contacto con medusas/malaguas.</li>
+                  <li>Si eres picado, lava la zona con agua salada y busca atención médica.</li>
+                  <li>Infórmate sobre la temporada de mayor presencia.</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       </div>
     </div>
   )

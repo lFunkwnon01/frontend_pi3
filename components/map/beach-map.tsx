@@ -103,34 +103,9 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
             </div>
           </div>
 
-          {/* Simulated Map Area */}
-          <div className="relative bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg h-96 overflow-hidden">
-            {/* Background pattern to simulate map */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="w-full h-full bg-gradient-to-br from-blue-200 to-green-200"></div>
-            </div>
-
-            {/* Beach markers */}
-            {beaches.map((beach, index) => (
-              <button
-                key={beach.id}
-                onClick={() => handleBeachClick(beach)}
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-110 ${
-                  selectedBeach?.id === beach.id ? "scale-125 z-10" : ""
-                }`}
-                style={{
-                  left: `${20 + index * 20}%`,
-                  top: `${30 + index * 15}%`,
-                }}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full ${getStatusColor(beach.status)} border-2 border-white shadow-lg`}
-                ></div>
-                <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-white px-2 py-1 rounded shadow-md text-xs whitespace-nowrap">
-                  {beach.name}
-                </div>
-              </button>
-            ))}
+          {/* Imagen real de mapa de Costa Verde */}
+          <div className="relative rounded-lg h-96 overflow-hidden flex items-center justify-center bg-gray-100">
+            <img src="/costa_verde.png" alt="Mapa Costa Verde" className="object-cover w-full h-full" />
           </div>
         </CardContent>
       </Card>

@@ -62,6 +62,9 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
           <div className="flex-1">
             <CardTitle className="text-lg mb-2">{event.title}</CardTitle>
             <CardDescription className="text-sm">{event.description}</CardDescription>
+            <div className="mt-2 text-xs text-primary font-semibold">
+              Incluye kit de limpieza básico: bolsa, guantes y tapaboca.
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -108,7 +111,7 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
           </div>
         </div>
 
-        {/* Organizer */}
+  {/* Kit básico info (mobile/desktop) */}
         <div className="flex items-center space-x-2 pt-2 border-t">
           <Avatar className="h-6 w-6">
             <AvatarImage src="/placeholder.svg" alt={event.organizer} />
