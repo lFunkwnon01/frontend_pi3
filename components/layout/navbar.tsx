@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Waves, Menu, X, LogOut, Award, Settings, User as UserIcon, TrendingUp, Home, Calendar, Camera, AlertTriangle, Gift, Plus } from "lucide-react"
+import { Menu, X, LogOut, Award, Settings, User as UserIcon, TrendingUp, Home, Calendar, Camera, AlertTriangle, Gift, Plus } from "lucide-react"
 import { getCurrentUser, logout, type User as AuthUser } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -66,7 +66,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center space-x-2">
-            <Waves className="h-8 w-8 text-primary" />
+            <img src="/logo_png.png" alt="EcoPlaya" className="h-8 w-auto" />
             <span className="text-xl font-bold text-primary">EcoPlaya</span>
           </Link>
 
@@ -80,6 +80,9 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/aliados" className={`text-sm font-medium transition-colors hover:text-primary ${pathname === "/aliados" ? "text-primary" : "text-muted-foreground"}`}>
+              Aliados
+            </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
@@ -222,6 +225,9 @@ export function Navbar() {
               ) : (
                 <Button onClick={() => router.push("/auth")} className="mx-2">Iniciar Sesión</Button>
               )}
+              <Link href="/aliados" onClick={() => setIsMobileMenuOpen(false)} className={`px-2 py-2 rounded-md text-base font-medium ${pathname === "/aliados" ? "text-primary" : "text-muted-foreground"}`}>
+                Aliados
+              </Link>
             </div>
           </div>
         )}

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { BeachMap } from "@/components/map/beach-map"
 import { getCurrentUser, type User } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Waves, TrendingUp, Users, Calendar } from "lucide-react"
+import { TrendingUp, Users, Calendar } from "lucide-react"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -20,11 +20,11 @@ export default function DashboardPage() {
     setUser(currentUser)
   }, [router])
 
-  if (!user) {
+      if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Waves className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
           <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
@@ -54,9 +54,9 @@ export default function DashboardPage() {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Playas Limpias</CardTitle>
-              <Waves className="h-5 w-5 text-primary" />
+              <img src="/logo_png.png" alt="EcoPlaya" className="h-5 w-auto" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">2</div>

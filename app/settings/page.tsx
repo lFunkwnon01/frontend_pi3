@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
-import { Waves, User as UserIcon, Mail, Award, Trophy, Calendar } from "lucide-react"
+import { User as UserIcon, Mail, Award, Trophy, Calendar } from "lucide-react"
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -55,7 +55,7 @@ export default function SettingsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Waves className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
           <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>

@@ -369,6 +369,198 @@ export const mockEventChats: EventChat[] = [
   },
 ]
 
+// District markers mock data (for map overlays)
+export interface DistrictMarker {
+  id: string
+  nombre_distrito: string
+  lat: number
+  lng: number
+  color: "primary" | "secondary"
+}
+
+export const mockDistrictMarkers: DistrictMarker[] = [
+  {
+    id: "d-1",
+    nombre_distrito: "Chorrillos",
+    lat: -12.1833,
+    lng: -77.0167,
+    color: "primary",
+  },
+  {
+    id: "d-2",
+    nombre_distrito: "Miraflores",
+    lat: -12.1196,
+    lng: -77.0365,
+    color: "secondary",
+  },
+  {
+    id: "d-3",
+    nombre_distrito: "Barranco",
+    lat: -12.1467,
+    lng: -77.0208,
+    color: "secondary",
+  },
+  {
+    id: "d-4",
+    nombre_distrito: "San Miguel",
+    lat: -12.0735,
+    lng: -77.0780,
+    color: "secondary",
+  },
+]
+
+// Mock allies (aliados estratégicos)
+export interface Ally {
+  id: string
+  nombre: string
+  distrito: string
+  logo_url?: string
+  banner_url?: string
+  descripcion: string
+  actividades: string[]
+  rating?: number
+  social_links?: { twitter?: string; instagram?: string; web?: string }
+}
+
+export const mockAllies: Ally[] = [
+  {
+    id: "a-1",
+    nombre: "Surf Peru",
+    distrito: "Chorrillos",
+    // As requested: surfperu PNG and banner
+    logo_url: "/surfperu_png.png",
+    banner_url: "/banner_surf_peru.png",
+    descripcion:
+      "Surf Peru — Clases de surf para todas las edades y niveles. Instructores certificados. Ofrecemos clases individuales y grupales, alquiler de equipos, camps de verano y entrenamiento personalizado.",
+    actividades: ["Clases de surf", "Alquiler de equipos", "Camps"],
+    rating: 4.7,
+    social_links: { instagram: "@surfchorrillos" },
+  },
+  {
+    id: "a-2",
+    nombre: "Aloha Perú",
+    distrito: "Miraflores",
+    // As requested: aloha PNG and banner
+    logo_url: "/aloha_png.png",
+    banner_url: "/banner_aloha.png",
+    descripcion:
+      "Aloha Perú — Escuela de surf y actividades costeras. Clases de surf para niños y adultos, talleres de reciclaje comunitario y programas de voluntariado en la playa.",
+    actividades: ["Clases de surf", "Reciclaje/Voluntariado"],
+    rating: 4.5,
+    social_links: { web: "https://reciclaya.example" },
+  },
+  {
+    id: "a-3",
+    nombre: "Caplina",
+    distrito: "Barranco",
+    // As requested: caplina PNG and banner
+    logo_url: "/caplina_png.png",
+    banner_url: "/banner_caplina.png",
+    descripcion:
+      "Caplina — Clases de Stand Up Paddle (SUP) y yoga sobre tabla. Ofrecemos salidas guiadas, sesiones de yoga en la costa, alquiler de tablas y entrenamiento para todos los niveles.",
+    actividades: ["SUP", "Yoga en tablas", "Alquiler de equipos"],
+    rating: 4.9,
+  },
+  {
+    id: "a-4",
+    nombre: "Lima Food Boat",
+    distrito: "San Miguel",
+    // As requested: lima food boat PNG and banner
+    logo_url: "/lima_food_boat.png",
+    banner_url: "/banner_lima_food_boat.png",
+    descripcion:
+      "Lima Food Boat — Experiencias gastronómicas y paseos en bote. También ofrecemos alquiler de tablas, tours costeros y servicios de catering para eventos en la costa.",
+    actividades: ["Alquiler de equipos", "Tours gastronómicos"],
+    rating: 4.2,
+  },
+  {
+    id: "a-5",
+    nombre: "Escuela de Surf Barranco",
+    distrito: "Barranco",
+  logo_url: "/lima-food-boat-2-logo.png",
+  banner_url: "/surf-barranco-banner.jpg",
+    descripcion: "Clases y camps de verano para jóvenes y adultos.",
+    actividades: ["Clases de surf", "Alquiler de equipos"],
+  },
+]
+
+// Mock services for allies
+export interface Service {
+  id: string
+  allyId: string
+  titulo: string
+  descripcion: string
+  imagen_url?: string
+  precio: number
+  moneda: string
+  duracion: string
+  capacidad: number
+  slots_disponibles: number
+  categorias: string[]
+  politicas?: string
+  disponibilidad?: string[] // array of YYYY-MM-DD
+}
+
+export const mockServices: Service[] = [
+  {
+    id: "s-1",
+    allyId: "a-1",
+    titulo: "Clase de Surf - Nivel Inicial",
+    descripcion: "Clase individual de 1 hora para principiantes. Tablas incluidas.",
+  imagen_url: "/imagen_1d.jpg",
+    precio: 35,
+    moneda: "USD",
+    duracion: "1 hora",
+    capacidad: 4,
+    slots_disponibles: 4,
+    categorias: ["Clases de surf"],
+    politicas: "Cancelación 24h antes",
+    disponibilidad: ["2025-10-28", "2025-10-29", "2025-10-30", "2025-11-01"],
+  },
+  {
+    id: "s-2",
+    allyId: "a-1",
+    titulo: "Alquiler de Tabla - Medio Día",
+    descripcion: "Alquiler de tabla por medio día (4 horas).",
+  imagen_url: "/imagen_2d.jpg",
+    precio: 20,
+    moneda: "USD",
+    duracion: "4 horas",
+    capacidad: 1,
+    slots_disponibles: 6,
+    categorias: ["Alquiler de equipos"],
+    disponibilidad: ["2025-10-28", "2025-10-30", "2025-11-02"],
+  },
+  {
+    id: "s-3",
+    allyId: "a-2",
+    titulo: "Taller de Reciclaje Comunitario",
+    descripcion: "Sesión educativa y práctica de reciclaje en la playa.",
+    imagen_url: "/services/recycling-workshop.jpg",
+    precio: 0,
+    moneda: "USD",
+    duracion: "2 horas",
+    capacidad: 30,
+    slots_disponibles: 30,
+    categorias: ["Reciclaje/Voluntariado"],
+    disponibilidad: ["2025-10-29", "2025-11-03"],
+  },
+]
+
+// Mock bookings (empty initial)
+export interface Booking {
+  bookingId: string
+  allyId: string
+  serviceId: string
+  fecha: string
+  hora?: string
+  personas: number
+  total: number
+  estado: "confirmed" | "pending" | "cancelled"
+}
+
+export const mockBookings: Booking[] = []
+
 // Mock rewards data
 export const mockRewards: Reward[] = [
   {

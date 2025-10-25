@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MapPin, AlertTriangle, CheckCircle, Clock, Eye } from "lucide-react"
-import { mockBeaches, type Beach } from "@/lib/mock-data"
+import { mockBeaches, type Beach, mockDistrictMarkers, type DistrictMarker } from "@/lib/mock-data"
 
 interface BeachMapProps {
   onBeachSelect?: (beach: Beach) => void
@@ -14,6 +15,7 @@ interface BeachMapProps {
 export function BeachMap({ onBeachSelect }: BeachMapProps) {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null)
   const [beaches, setBeaches] = useState<Beach[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     setBeaches(mockBeaches)
@@ -103,9 +105,62 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
             </div>
           </div>
 
-          {/* Imagen real de mapa de Costa Verde */}
-          <div className="relative rounded-lg h-96 overflow-hidden flex items-center justify-center bg-gray-100">
+          {/* Imagen real de mapa de Costa Verde con marcadores interactivos */}
+          <div className="relative rounded-lg h-[30rem] md:h-[36rem] overflow-hidden flex items-center justify-center bg-gray-100">
             <img src="/costa_verde.png" alt="Mapa Costa Verde" className="object-cover w-full h-full" />
+
+            {/* Overlay markers: position absolutely using a simple lat/lng -> percentage transform within a predefined bbox (mock) */}
+            <div className="absolute inset-0 pointer-events-none">
+              {mockDistrictMarkers.map((m: DistrictMarker) => {
+                // Mock bounding box for Costa Verde area (approx)
+                const minLat = -12.20 // south
+                const maxLat = -12.05 // north
+                const minLng = -77.10 // west
+                const maxLng = -77.01 // east
+
+                const latRange = maxLat - minLat
+                const lngRange = maxLng - minLng
+
+                // Convert lat/lng to percentage positions (top/left)
+                const top = ((maxLat - m.lat) / latRange) * 100
+                const left = ((m.lng - minLng) / lngRange) * 100
+
+                const isPrimary = m.color === "primary"
+
+                return (
+                  <div
+                    key={m.id}
+                    className="absolute"
+                    style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
+                  >
+                    {isPrimary ? (
+                      // Accessible button-like marker for Chorrillos
+                      <button
+                        title={`Ver aliados en ${m.nombre_distrito}`}
+                        aria-label={`Ver aliados en ${m.nombre_distrito}`}
+                        className="pointer-events-auto w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-green-600 text-white ring-4 ring-green-200/60 shadow-lg"
+                        onClick={() => router.push(`/aliados?distrito=${encodeURIComponent(m.nombre_distrito.toLowerCase())}`)}
+                      >
+                        <span className="sr-only">Ver aliados en {m.nombre_distrito}</span>
+                        {/* Visible short label inside the circle (initials) */}
+                        <span className="text-sm font-semibold">{m.nombre_distrito.split(" ")[0]}</span>
+                      </button>
+                    ) : (
+                      // Secondary marker: small turquoise dot, clickable area larger for accessibility
+                      <div className="pointer-events-auto flex items-center space-x-2">
+                        <button
+                          title={m.nombre_distrito}
+                          aria-label={m.nombre_distrito}
+                          className="w-3 h-3 min-w-[24px] min-h-[24px] md:min-w-[28px] md:min-h-[28px] rounded-full bg-teal-400/90 shadow"
+                          onClick={() => router.push(`/aliados?distrito=${encodeURIComponent(m.nombre_distrito.toLowerCase())}`)}
+                        />
+                        <span className="hidden md:inline text-xs text-muted-foreground">{m.nombre_distrito}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Waves, Camera, Heart, MessageCircle, Share2, Users, Calendar, MapPin, Film, Download, Clock } from "lucide-react"
+import { Camera, Heart, MessageCircle, Share2, Users, Calendar, MapPin, Film, Download, Clock } from "lucide-react"
 import Image from "next/image"
 
 interface EventAlbum {
@@ -104,11 +104,11 @@ export default function EcoSharePage() {
     setUser(currentUser)
   }, [router])
 
-  if (!user) {
+    if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Waves className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
           <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>

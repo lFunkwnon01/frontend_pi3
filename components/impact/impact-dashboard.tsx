@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ImpactChart } from "./impact-chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Waves, Users, Trash2, TrendingUp, Award, Leaf, Target, BarChart3, PieChart, Activity } from "lucide-react"
+import { Users, Trash2, TrendingUp, Award, Leaf, Target, BarChart3, PieChart, Activity } from "lucide-react"
 import { mockImpactStats } from "@/lib/mock-data"
 
 export function ImpactDashboard() {
@@ -76,7 +76,7 @@ export function ImpactDashboard() {
                 <p className="text-3xl font-bold text-purple-700">{stats.beachesRestored}</p>
                 <p className="text-sm text-purple-600 mt-2">{stats.eventsCompleted} eventos completados</p>
               </div>
-              <Waves className="h-12 w-12 text-purple-500" />
+              <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto" />
             </div>
           </CardContent>
         </Card>
@@ -192,7 +192,7 @@ export function ImpactDashboard() {
             </div>
 
             <div className="text-center p-6 border rounded-lg bg-gradient-to-br from-green-50 to-emerald-50">
-              <Waves className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Playa Modelo</h3>
               <p className="text-sm text-muted-foreground mb-3">
                 Playa de la Concha certificada como playa modelo por su limpieza

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Waves, MapPin, Camera, Calendar, Award, GraduationCap, Users } from "lucide-react"
+import { MapPin, Camera, Calendar, Award, GraduationCap, Users } from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import { getCurrentUser } from "@/lib/auth"
 
@@ -85,7 +85,7 @@ export default function HomePage() {
         <div className="absolute inset-0 z-0 animate-mar-bg" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <Waves className="h-12 w-12 text-primary drop-shadow-lg" />
+            <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto drop-shadow-lg" />
             <h1 className="text-5xl font-bold text-primary drop-shadow-lg">EcoPlaya</h1>
           </div>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-balance drop-shadow">

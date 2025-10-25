@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { 
-  Waves, 
+  
   TrendingUp, 
   Award, 
   Calendar, 
@@ -132,7 +132,7 @@ export default function MyImpactPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Waves className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
           <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { LoginForm } from "@/components/auth/login-form"
 import { RegisterForm } from "@/components/auth/register-form"
 import { Button } from "@/components/ui/button"
-import { Waves } from "lucide-react"
+// Waves icon removed; using logo image instead
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -15,7 +15,7 @@ export default function AuthPage() {
         {/* Logo and branding */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center space-x-2">
-            <Waves className="h-8 w-8 text-primary" />
+            <img src="/logo_png.png" alt="EcoPlaya" className="h-8 w-auto" />
             <h1 className="text-3xl font-bold text-primary">EcoPlaya</h1>
           </div>
           <p className="text-muted-foreground">Protegiendo nuestras costas juntos</p>
