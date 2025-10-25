@@ -1,4 +1,6 @@
-import { AllyList } from "@/components/aliados/ally-list"
+import dynamic from "next/dynamic"
+
+const AllyList = dynamic(() => import("@/components/aliados/ally-list"), { ssr: false })
 
 export const metadata = {
   title: "Aliados - EcoPlaya",
@@ -13,6 +15,7 @@ export default function AliadosPage() {
           <p className="text-muted-foreground">Organizaciones y negocios aliados en la Costa Verde</p>
         </div>
 
+        {/* AllyList is a client component and may use browser-only APIs; load it dynamically on the client to avoid prerender errors */}
         <AllyList />
       </div>
     </div>
