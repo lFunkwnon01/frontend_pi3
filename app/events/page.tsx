@@ -33,13 +33,6 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Eventos de Limpieza</h1>
-          <p className="text-muted-foreground">
-            Únete a jornadas de limpieza organizadas por la comunidad y gana puntos por tu participación
-          </p>
-        </div>
-
         <EventsCalendar />
       </div>
     </div>

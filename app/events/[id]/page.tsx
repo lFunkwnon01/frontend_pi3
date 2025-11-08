@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar, MapPin, Users, Clock, Award, MessageCircle, ArrowLeft, Send, CheckCircle2 } from "lucide-react"
 import { mockEvents, mockEventChats, type Event, type EventChat } from "@/lib/mock-data"
+import mockEventsAdvanced, { type EventAdvanced } from "@/lib/event-model"
 
 export default function EventDetailPage() {
   const router = useRouter()
@@ -31,17 +32,44 @@ export default function EventDetailPage() {
     }
     setUser(currentUser)
 
-    // Find the event
+    // Find the event (legacy or advanced)
     const foundEvent = mockEvents.find(e => e.id === params.id)
     if (foundEvent) {
       setEvent(foundEvent)
       setIsRegistered(foundEvent.registeredUsers?.includes(currentUser.id) || false)
-      
-      // Find the chat
       const foundChat = mockEventChats.find(c => c.id === foundEvent.chatId)
-      if (foundChat) {
-        setChat(foundChat)
+      if (foundChat) setChat(foundChat)
+      return
+    }
+
+    // Try advanced events
+    const adv = mockEventsAdvanced.find((e: EventAdvanced) => e.id === params.id)
+    if (adv) {
+      const durationMs = adv.endDate ? Math.max(0, new Date(adv.endDate).getTime() - new Date(adv.startDate).getTime()) : 0
+      const durationHours = durationMs ? Math.round(durationMs / (1000 * 60 * 60)) : 3
+      const mapped: Event = {
+        id: adv.id,
+        title: adv.title,
+        description: adv.description,
+        beachId: "-",
+        beachName: adv.location.playa,
+        date: new Date(adv.startDate).toISOString().slice(0, 10),
+        time: new Date(adv.startDate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+        duration: `${durationHours} horas`,
+        volunteers: 0,
+        maxVolunteers: adv.capacity?.maxVolunteers || 0,
+        organizer: adv.organizer.name,
+        organizerId: adv.organizer.name,
+        image: adv.images?.[0] || "/placeholder.svg",
+        points: adv.benefits?.points || 0,
+        status: adv.status === "upcoming" ? "approved" : adv.status === "past" ? "completed" : "pending",
+        chatId: `adv-chat-${adv.id}`,
+        registeredUsers: [],
       }
+      setEvent(mapped)
+      setIsRegistered(false)
+      // Advanced events: no predefined chat; keep chat hidden
+      return
     }
   }, [params.id, router])
 
