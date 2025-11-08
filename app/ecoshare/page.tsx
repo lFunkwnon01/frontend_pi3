@@ -7,8 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Camera, Heart, MessageCircle, Share2, Users, Calendar, MapPin, Film, Download, Clock } from "lucide-react"
+import { Camera, Heart, MessageCircle, Share2, Users, Calendar, MapPin, Film, Download, Clock, Hash } from "lucide-react"
 import Image from "next/image"
+import TestimonialsSection from "@/components/ecoshare/testimonials"
+import BeforeAfterSlider from "@/components/ecoshare/before-after"
+import PhotoContest from "@/components/ecoshare/contest"
 
 interface EventAlbum {
   id: string
@@ -25,11 +28,13 @@ interface EventAlbum {
   videoUrl?: string
   coverPhoto: string
   recentPhotos: string[]
+  hashtags: string[]
 }
 
 export default function EcoSharePage() {
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
+  const [selectedTag, setSelectedTag] = useState<string>("")
 
   // Mock data de álbumes
   const albums: EventAlbum[] = [
@@ -52,6 +57,7 @@ export default function EcoSharePage() {
         "/placeholder.jpg",
         "/placeholder.jpg",
       ],
+      hashtags: ["#LimpioMiraflores", "#EcoShare", "#CostaLimpia"],
     },
     {
       id: "2",
@@ -72,6 +78,7 @@ export default function EcoSharePage() {
         "/placeholder.jpg",
         "/placeholder.jpg",
       ],
+      hashtags: ["#DesafíoBarranco", "#EcoShare", "#DunasVivas"],
     },
     {
       id: "3",
@@ -92,6 +99,7 @@ export default function EcoSharePage() {
         "/placeholder.jpg",
         "/placeholder.jpg",
       ],
+      hashtags: ["#CostaVerde", "#EcoShare"],
     },
   ]
 
@@ -155,7 +163,7 @@ export default function EcoSharePage() {
         </div>
 
         {/* Info Banner */}
-        <Card className="mb-8 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 border-cyan-200">
+  <Card className="mb-8 bg-linear-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 border-cyan-200">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-4">
               <div className="bg-primary/10 p-3 rounded-full">
@@ -182,9 +190,27 @@ export default function EcoSharePage() {
           </CardContent>
         </Card>
 
+        {/* Hashtags trending + filtro */}
+        <div className="mb-6">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground mr-2">Trending del mes:</span>
+            {(["#LimpioMiraflores", "#DesafíoBarranco", "#EcoShare"]).map((tag) => (
+              <button key={tag} className="px-3 py-1 rounded-full border hover:bg-accent" onClick={()=>setSelectedTag(tag)}>
+                {tag}
+              </button>
+            ))}
+            {selectedTag && (
+              <button className="ml-auto text-xs underline" onClick={()=>setSelectedTag("")}>Limpiar filtro</button>
+            )}
+          </div>
+        </div>
+
         {/* Albums Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {albums.map((album) => (
+          {albums
+            .filter(a => !selectedTag || a.hashtags.includes(selectedTag))
+            .map((album) => (
             <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               {/* Cover Image */}
               <div className="relative aspect-video bg-muted">
@@ -213,6 +239,11 @@ export default function EcoSharePage() {
                     <MapPin className="h-3 w-3 mr-1" />
                     {album.location}
                   </span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {album.hashtags.map(tag => (
+                    <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-xs cursor-pointer" onClick={()=>setSelectedTag(tag)}>{tag}</span>
+                  ))}
                 </div>
               </CardHeader>
 
@@ -265,13 +296,28 @@ export default function EcoSharePage() {
                       </Button>
                     </>
                   )}
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={()=>{
+                    const tags = album.hashtags.join(' ')
+                    const text = `${album.eventTitle} — EcoShare ${tags}`
+                    const url = typeof window !== 'undefined' ? window.location.href : 'https://ecoplaya.local'
+                    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+                    window.open(shareUrl, '_blank')
+                  }}>
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
+
+                {/* Before/After & Testimonials for each campaign */}
+                <BeforeAfterSlider campaignId={album.id} />
+                <TestimonialsSection />
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Concurso mensual */}
+        <div className="mt-10">
+          <PhotoContest />
         </div>
 
         {/* Empty State si no hay álbumes (comentado por ahora) */}

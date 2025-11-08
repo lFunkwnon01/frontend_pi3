@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MapPin, Clock, Eye, AlertTriangle, Trash2, Droplets, CheckCircle2, XCircle, Award } from "lucide-react"
-import { mockReports, type Report } from "@/lib/mock-data"
-import { getCurrentUser } from "@/lib/auth"
+import { mockReports, type Report, REPORT_TYPE_META, URGENCY_BADGE } from "@/lib/mock-data"
+import { getCurrentUser, addPoints } from "@/lib/auth"
 
 export function ReportsList() {
   const [reports, setReports] = useState<Report[]>([])
@@ -21,66 +21,78 @@ export function ReportsList() {
   }, [])
 
   const getTypeIcon = (type: Report["type"]) => {
-    switch (type) {
-      case "trash":
-        return <Trash2 className="h-4 w-4" />
-      case "pollution":
-        return <Droplets className="h-4 w-4" />
-      default:
-        return <AlertTriangle className="h-4 w-4" />
+    const meta = REPORT_TYPE_META[type]
+    if (!meta) return <AlertTriangle className="h-4 w-4" />
+    const size = "h-4 w-4"
+    switch (meta.icon) {
+      case "Trash2": return <Trash2 className={size} />
+      case "Droplet": return <Droplets className={size} />
+      case "PawPrint": return <AlertTriangle className={size} />
+      case "Waves": return <AlertTriangle className={size} />
+      case "Building": return <AlertTriangle className={size} />
+      case "Car": return <AlertTriangle className={size} />
+      default: return <AlertTriangle className={size} />
     }
   }
 
-  const getTypeText = (type: Report["type"]) => {
-    switch (type) {
-      case "trash":
-        return "Basura"
-      case "pollution":
-        return "Contaminación"
-      case "clean":
-        return "Limpieza"
-      default:
-        return "Otro"
-    }
-  }
+  const getTypeText = (type: Report["type"]) => REPORT_TYPE_META[type]?.label || "Otro"
 
   const getStatusVariant = (status: Report["status"]) => {
     switch (status) {
-      case "verified":
-        return "default" as const
-      case "pending":
-        return "secondary" as const
-      case "rejected":
-        return "destructive" as const
-      default:
-        return "outline" as const
+      case "verified": return "default" as const
+      case "pending": return "secondary" as const
+      case "rejected": return "destructive" as const
+      case "community_validated": return "default" as const
+      case "resolved": return "outline" as const
+      default: return "outline" as const
     }
   }
 
   const getStatusText = (status: Report["status"]) => {
     switch (status) {
-      case "verified":
-        return "Verificado"
-      case "pending":
-        return "Pendiente"
-      case "rejected":
-        return "Rechazado"
-      default:
-        return "Sin estado"
+      case "verified": return "Verificado"
+      case "pending": return "Pendiente"
+      case "rejected": return "Rechazado"
+      case "community_validated": return "Validado por comunidad"
+      case "resolved": return "Resuelto"
+      default: return "Sin estado"
     }
   }
 
   const getStatusIcon = (status: Report["status"]) => {
     switch (status) {
-      case "verified":
-        return <CheckCircle2 className="h-3 w-3" />
-      case "pending":
-        return <Clock className="h-3 w-3" />
-      case "rejected":
-        return <XCircle className="h-3 w-3" />
-      default:
-        return null
+      case "verified": return <CheckCircle2 className="h-3 w-3" />
+      case "pending": return <Clock className="h-3 w-3" />
+      case "rejected": return <XCircle className="h-3 w-3" />
+      case "community_validated": return <CheckCircle2 className="h-3 w-3 text-primary" />
+      case "resolved": return <CheckCircle2 className="h-3 w-3 text-green-600" />
+      default: return null
     }
+  }
+
+  const currentUser = getCurrentUser()
+
+  const validateReport = (r: Report) => {
+    if (!currentUser) return
+    setReports(prev => prev.map(rep => {
+      if (rep.id !== r.id) return rep
+      const validations = rep.communityValidations || []
+      if (validations.includes(currentUser.id)) return rep
+      const updatedValidations = [...validations, currentUser.id]
+      const thresholdReached = updatedValidations.length >= 3 && rep.status === 'pending'
+      const newStatus = thresholdReached ? 'community_validated' : rep.status
+      if (thresholdReached) addPoints(20) // reward validator
+      return { ...rep, communityValidations: updatedValidations, status: newStatus, validatedAt: thresholdReached ? new Date().toISOString() : rep.validatedAt }
+    }))
+  }
+
+  const resolveReport = (r: Report) => {
+    // simulate resolution awarding points to creator if resolved quickly (<7 days)
+    const created = new Date(r.timestamp).getTime()
+    const now = Date.now()
+    const days = (now - created) / (1000*60*60*24)
+    const quick = days < 7
+    setReports(prev => prev.map(rep => rep.id === r.id ? { ...rep, status: 'resolved', resolved: true, resolvedAt: new Date().toISOString(), resolvedImages: { before: rep.image, after: '/beach-cleanup-volunteers.png' }, points: rep.points + (quick ? 50 : 0) } : rep))
   }
 
   return (
@@ -139,15 +151,26 @@ export function ReportsList() {
 
                 <p className="text-sm mb-3">{report.description}</p>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 mr-1" />
                     <span>Playa reportada</span>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4 mr-1" />
-                    Ver detalles
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={()=>setSelectedReport(report)}>
+                      <Eye className="h-4 w-4 mr-1" />
+                      Ver detalles
+                    </Button>
+                    {report.status === 'pending' && (
+                      <Button variant="outline" size="sm" onClick={()=>validateReport(report)}>Validar (+20)</Button>
+                    )}
+                    {report.status === 'community_validated' && (
+                      <Badge variant="secondary" className="text-[10px]">{(report.communityValidations||[]).length} validaciones</Badge>
+                    )}
+                    {report.status !== 'resolved' && report.status !== 'rejected' && (
+                      <Button variant="outline" size="sm" onClick={()=>resolveReport(report)}>Marcar resuelto</Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -220,6 +243,22 @@ export function ReportsList() {
                   <p className="text-sm text-muted-foreground">
                     Lat: {selectedReport.location.lat.toFixed(6)}, Lng: {selectedReport.location.lng.toFixed(6)}
                   </p>
+                  {selectedReport.communityValidations && selectedReport.communityValidations.length > 0 && (
+                    <p className="text-xs mt-1">Validaciones: {selectedReport.communityValidations.length}/3</p>
+                  )}
+                  {selectedReport.resolved && selectedReport.resolvedImages && (
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <div className="font-medium mb-1">Antes</div>
+                        <img src={selectedReport.resolvedImages.before} className="rounded border aspect-video object-cover" />
+                      </div>
+                      <div>
+                        <div className="font-medium mb-1">Después</div>
+                        <img src={selectedReport.resolvedImages.after} className="rounded border aspect-video object-cover" />
+                      </div>
+                      <div className="col-span-2 text-[11px] text-muted-foreground mt-1">Resuelto {selectedReport.resolvedAt && new Date(selectedReport.resolvedAt).toLocaleDateString('es-ES')} {selectedReport.validatedAt && `(validado previamente)`}</div>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import type { AllyRef } from "@/lib/event-model"
 import type { District } from "@/lib/event-model"
 
@@ -59,8 +59,8 @@ export function EventFilters({ allies, value = {}, onChange }: Props) {
 
   useEffect(() => onChange?.(filters), [filters, onChange])
 
-  const toggleArray = (key: keyof FiltersState, item: any) => {
-    setFilters((prev) => {
+  const toggleArray = (key: keyof FiltersState, item: string | District) => {
+    setFilters((prev: FiltersState) => {
       const arr = (prev as any)[key] as any[]
       const exists = arr.includes(item)
       const next = exists ? arr.filter((i) => i !== item) : [...arr, item]
@@ -77,7 +77,7 @@ export function EventFilters({ allies, value = {}, onChange }: Props) {
           <input
             type="search"
             value={filters.q}
-            onChange={(e) => setFilters((p) => ({ ...p, q: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters((p: FiltersState) => ({ ...p, q: e.target.value }))}
             placeholder="Buscar por título o playa"
             className="hidden md:block flex-1 px-3 py-2 rounded-full focus:outline-none"
             aria-label="Buscar"
@@ -112,7 +112,7 @@ export function EventFilters({ allies, value = {}, onChange }: Props) {
               <Calendar
                 mode="single"
                 selected={filters.date ? new Date(filters.date) : undefined}
-                onSelect={(d) => setFilters((p)=>({ ...p, date: d ? new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString() : null }))}
+                onSelect={(d?: Date) => setFilters((p: FiltersState)=>({ ...p, date: d ? new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString() : null }))}
               />
             </PopoverContent>
           </Popover>
@@ -157,7 +157,7 @@ export function EventFilters({ allies, value = {}, onChange }: Props) {
             {(["Any","Costa","Mar"] as const).map((opt) => (
               <button
                 key={opt}
-                onClick={() => setFilters((p)=>({ ...p, scope: opt }))}
+                onClick={() => setFilters((p: FiltersState)=>({ ...p, scope: opt }))}
                 className={`px-3 py-2 rounded-full text-sm ${filters.scope===opt ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
               >
                 {opt === 'Any' ? 'Todos' : opt === 'Costa' ? 'Costa' : 'Mar'}
@@ -168,7 +168,7 @@ export function EventFilters({ allies, value = {}, onChange }: Props) {
           <div className="ml-auto flex items-center gap-2">
             <select
               value={filters.sortBy}
-              onChange={(e)=>setFilters(p=>({...p, sortBy: e.target.value as any}))}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>)=>setFilters((p: FiltersState)=>({...p, sortBy: e.target.value as FiltersState["sortBy"]}))}
               className="text-sm border rounded-full px-3 py-2 bg-background"
             >
               <option value="upcoming">Próximos primero</option>

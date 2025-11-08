@@ -1,12 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, AlertTriangle, CheckCircle, Clock, Eye } from "lucide-react"
-import { mockBeaches, type Beach, mockDistrictMarkers, type DistrictMarker } from "@/lib/mock-data"
+import { MapPin, AlertTriangle, CheckCircle, Clock, Eye, Filter, Map } from "lucide-react"
+import { mockBeaches, type Beach, mockDistrictMarkers, type DistrictMarker, mockEvents } from "@/lib/mock-data"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface BeachMapProps {
   onBeachSelect?: (beach: Beach) => void
@@ -15,11 +17,28 @@ interface BeachMapProps {
 export function BeachMap({ onBeachSelect }: BeachMapProps) {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null)
   const [beaches, setBeaches] = useState<Beach[]>([])
+  const [showUrgentOnly, setShowUrgentOnly] = useState(false)
+  const [showUpcomingEvents, setShowUpcomingEvents] = useState(true)
+  const [district, setDistrict] = useState<string>("")
+  const [popup, setPopup] = useState<{ top: number; left: number; beach: Beach } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     setBeaches(mockBeaches)
   }, [])
+
+  const filteredBeaches = useMemo(() => {
+    return beaches.filter((b) => {
+      if (showUrgentOnly && b.status !== "dirty") return false
+      if (district && !b.name.toLowerCase().includes(district.toLowerCase())) return false
+      return true
+    })
+  }, [beaches, showUrgentOnly, district])
+
+  const beachesWithEvents = useMemo(() => {
+    const beachIdsWithEvents = new Set(mockEvents.map((e) => e.beachId))
+    return filteredBeaches.filter((b) => beachIdsWithEvents.has(b.id))
+  }, [filteredBeaches])
 
   const getStatusColor = (status: Beach["status"]) => {
     switch (status) {
@@ -73,9 +92,10 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
     }
   }
 
-  const handleBeachClick = (beach: Beach) => {
+  const handleBeachClick = (beach: Beach, pos?: { top: number; left: number }) => {
     setSelectedBeach(beach)
     onBeachSelect?.(beach)
+    if (pos) setPopup({ ...pos, beach })
   }
 
   return (
@@ -83,13 +103,44 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
       {/* Map Legend */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5" />
-            <span>Mapa de Playas</span>
-          </CardTitle>
-          <CardDescription>Haz clic en una playa para ver más detalles</CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              <CardTitle>Mapa de Playas</CardTitle>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              Filtros rápidos
+            </div>
+          </div>
+          <CardDescription>Haz clic en un marcador para ver detalles y eventos</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={showUrgentOnly} onCheckedChange={(v) => setShowUrgentOnly(!!v)} />
+              Ver solo urgente
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={showUpcomingEvents} onCheckedChange={(v) => setShowUpcomingEvents(!!v)} />
+              Ver eventos próximos en el mapa
+            </label>
+            <div className="flex items-center gap-2 text-sm">
+              <span>Distrito</span>
+              <Select value={district || "all"} onValueChange={(v) => setDistrict(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Miraflores">Miraflores</SelectItem>
+                  <SelectItem value="Barranco">Barranco</SelectItem>
+                  <SelectItem value="Chorrillos">Chorrillos</SelectItem>
+                  <SelectItem value="San Miguel">San Miguel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -102,6 +153,10 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm">Necesita Limpieza</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <span className="text-sm">Eventos próximos</span>
             </div>
           </div>
 
@@ -160,12 +215,88 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
                   </div>
                 )
               })}
+
+              {/* Beach markers based on filters */}
+              {filteredBeaches.map((b) => {
+                const minLat = -12.20
+                const maxLat = -12.05
+                const minLng = -77.10
+                const maxLng = -77.01
+                const latRange = maxLat - minLat
+                const lngRange = maxLng - minLng
+                const top = ((maxLat - b.location.lat) / latRange) * 100
+                const left = ((b.location.lng - minLng) / lngRange) * 100
+                return (
+                  <div key={`beach-${b.id}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}>
+                    <button
+                      className={`pointer-events-auto w-4 h-4 rounded-full ring-4 ${b.status === 'dirty' ? 'bg-red-500 ring-red-200/70' : b.status === 'regular' ? 'bg-yellow-500 ring-yellow-200/70' : 'bg-green-500 ring-green-200/70'}`}
+                      title={b.name}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleBeachClick(b, { top, left })
+                      }}
+                    />
+                  </div>
+                )
+              })}
+
+              {/* Upcoming events markers (blue) */}
+              {showUpcomingEvents && beachesWithEvents.map((b) => {
+                const minLat = -12.20
+                const maxLat = -12.05
+                const minLng = -77.10
+                const maxLng = -77.01
+                const latRange = maxLat - minLat
+                const lngRange = maxLng - minLng
+                const top = ((maxLat - b.location.lat) / latRange) * 100
+                const left = ((b.location.lng - minLng) / lngRange) * 100
+                return (
+                  <div key={`event-${b.id}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}>
+                    <button
+                      className="pointer-events-auto w-6 h-6 flex items-center justify-center rounded-full bg-blue-600 text-white ring-4 ring-blue-200/60 shadow"
+                      title={`Eventos en ${b.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleBeachClick(b, { top, left })
+                      }}
+                    >
+                      <Map className="w-3 h-3" />
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* Popup card near marker */}
+              {popup && (
+                <div
+                  className="absolute pointer-events-auto"
+                  style={{ left: `${popup.left}%`, top: `${popup.top}%`, transform: "translate(-50%, calc(-100% - 12px))" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="bg-white rounded-lg shadow-xl border w-64 overflow-hidden">
+                    <img src="/placeholder.jpg" alt={popup.beach.name} className="w-full h-24 object-cover" />
+                    <div className="p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="font-semibold text-sm">{popup.beach.name}</div>
+                        <Badge variant={getStatusVariant(popup.beach.status)}>{getStatusText(popup.beach.status)}</Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground">Último reporte: {new Date(popup.beach.lastUpdated).toLocaleDateString('es-PE')}</div>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1" onClick={() => router.push(`/events?distrito=${encodeURIComponent(popup.beach.name.split(' ')[1] || '')}`)}>
+                          Ver eventos disponibles
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setPopup(null)}>Cerrar</Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Beach Details */}
+      {/* Beach Details (panel) */}
       {selectedBeach && (
         <Card>
           <CardHeader>

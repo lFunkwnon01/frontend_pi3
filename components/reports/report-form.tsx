@@ -2,14 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, MapPin, Upload, CheckCircle } from "lucide-react"
-import { mockBeaches, type Beach } from "@/lib/mock-data"
+import { Camera, MapPin, Upload, CheckCircle, Droplet, PawPrint, Waves, Building, Car, AlertTriangle, Trash2 } from "lucide-react"
+import { mockBeaches, type Beach, REPORT_TYPE_META, type ReportType } from "@/lib/mock-data"
 
 interface ReportFormProps {
   selectedBeach?: Beach
@@ -19,12 +19,46 @@ interface ReportFormProps {
 export function ReportForm({ selectedBeach, onSuccess }: ReportFormProps) {
   const [formData, setFormData] = useState({
     beachId: selectedBeach?.id || "",
-    type: "",
+    type: "trash" as ReportType,
+    urgency: "medio" as "bajo"|"medio"|"alto"|"critico",
     description: "",
     image: null as File | null,
+    location: null as { lat: number; lng: number } | null,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [locError, setLocError] = useState<string|undefined>(undefined)
+
+  // Get GPS position and preselect closest beach
+  const distanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (v: number) => (v * Math.PI) / 180
+    const R = 6371
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  }
+  useEffect(() => {
+    if (!('geolocation' in navigator)) { setLocError('Geolocalización no disponible'); return }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        const nearest = mockBeaches
+          .map(b => ({ b, d: distanceKm(location.lat, location.lng, b.location.lat, b.location.lng) }))
+          .sort((a,b)=>a.d-b.d)[0]?.b
+        setFormData(prev => ({ ...prev, location, beachId: prev.beachId || nearest?.id || "" }))
+      },
+      () => setLocError('No se pudo obtener la ubicación'),
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 8000 }
+    )
+  }, [])
+
+  const nearestBeach = useMemo(() => {
+    if (!formData.location) return null
+    return mockBeaches
+      .map(b => ({ b, d: distanceKm(formData.location!.lat, formData.location!.lng, b.location.lat, b.location.lng) }))
+      .sort((a,b)=>a.d-b.d)[0]?.b || null
+  }, [formData.location])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -48,9 +82,11 @@ export function ReportForm({ selectedBeach, onSuccess }: ReportFormProps) {
       setIsSuccess(false)
       setFormData({
         beachId: selectedBeach?.id || "",
-        type: "",
+        type: "trash",
+        urgency: "medio",
         description: "",
         image: null,
+        location: null,
       })
       onSuccess?.()
     }, 2000)
@@ -119,7 +155,7 @@ export function ReportForm({ selectedBeach, onSuccess }: ReportFormProps) {
             <Label htmlFor="type">Tipo de Reporte</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
+              onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value as ReportType }))}
               required
             >
               <SelectTrigger>
@@ -127,10 +163,29 @@ export function ReportForm({ selectedBeach, onSuccess }: ReportFormProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="trash">Acumulación de Basura</SelectItem>
-                <SelectItem value="pollution">Contaminación del Agua</SelectItem>
-                <SelectItem value="infrastructure">Infraestructura Dañada</SelectItem>
-                <SelectItem value="wildlife">Problema con Fauna Marina</SelectItem>
+                <SelectItem value="oil_spill">Derrame de petróleo</SelectItem>
+                <SelectItem value="wildlife">Animales en peligro</SelectItem>
+                <SelectItem value="erosion">Erosión costera</SelectItem>
+                <SelectItem value="water_pollution">Contaminación de agua</SelectItem>
+                <SelectItem value="illegal_construction">Construcción ilegal</SelectItem>
+                <SelectItem value="vehicles">Vehículos en la playa</SelectItem>
                 <SelectItem value="other">Otro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Urgency */}
+          <div className="space-y-2">
+            <Label htmlFor="urgency">Urgencia</Label>
+            <Select value={formData.urgency} onValueChange={(v)=>setFormData(p=>({...p, urgency: v as any}))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Nivel de urgencia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bajo">Bajo</SelectItem>
+                <SelectItem value="medio">Medio</SelectItem>
+                <SelectItem value="alto">Alto</SelectItem>
+                <SelectItem value="critico">Crítico</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -163,15 +218,32 @@ export function ReportForm({ selectedBeach, onSuccess }: ReportFormProps) {
             </div>
           </div>
 
-          {/* Location Info */}
+          {/* Location Info + mini map */}
           <div className="bg-muted rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Ubicación</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              La ubicación se detectará automáticamente cuando envíes el reporte
-            </p>
+            {formData.location ? (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Lat: {formData.location.lat.toFixed(5)}, Lng: {formData.location.lng.toFixed(5)}
+                </p>
+                {/* Mini mapa simple con img de mapas openstreetmap vía URL estática */}
+                <img
+                  className="w-full rounded border"
+                  alt="Mapa"
+                  src={`https://staticmap.openstreetmap.de/staticmap.php?center=${formData.location.lat},${formData.location.lng}&zoom=15&size=600x260&markers=${formData.location.lat},${formData.location.lng},red-pushpin`}
+                />
+                {nearestBeach && (
+                  <p className="text-xs mt-2">Playa más cercana detectada: <strong>{nearestBeach.name}</strong></p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {locError || 'Obteniendo ubicación actual...'}
+              </p>
+            )}
           </div>
 
           {/* Submit Button */}

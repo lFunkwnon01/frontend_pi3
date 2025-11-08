@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Gift, Star, Coffee, Award, Compass, CheckCircle } from "lucide-react"
+import { Gift, Star, Coffee, Award, Compass, CheckCircle, Clock } from "lucide-react"
 import type { Reward } from "@/lib/mock-data"
 
 interface RewardCardProps {
@@ -16,6 +16,13 @@ interface RewardCardProps {
 
 export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }: RewardCardProps) {
   const [isRedeeming, setIsRedeeming] = useState(false)
+  const timeLeft = (iso: string) => {
+    const ms = new Date(iso).getTime() - Date.now()
+    if (ms <= 0) return '0h 0m'
+    const h = Math.floor(ms/3600000)
+    const m = Math.floor((ms%3600000)/60000)
+    return `${h}h ${m}m`
+  }
 
   const handleRedeem = async () => {
     setIsRedeeming(true)
@@ -33,6 +40,8 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
         return <Award className="h-4 w-4" />
       case "experience":
         return <Compass className="h-4 w-4" />
+      case "nonmaterial":
+        return <Star className="h-4 w-4" />
       default:
         return <Star className="h-4 w-4" />
     }
@@ -46,6 +55,8 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
         return "Insignia"
       case "experience":
         return "Experiencia"
+      case "nonmaterial":
+        return "Reconocimiento"
       default:
         return "Recompensa"
     }
@@ -59,12 +70,18 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
         return "bg-yellow-100 text-yellow-800"
       case "experience":
         return "bg-blue-100 text-blue-800"
+      case "nonmaterial":
+        return "bg-purple-100 text-purple-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
-  const canRedeem = userPoints >= reward.points && reward.available && !isRedeemed
+  const effectiveCost = reward.flashCost && reward.limitedUntil && new Date(reward.limitedUntil).getTime() > Date.now()
+    ? reward.flashCost
+    : reward.points
+  const flashActive = effectiveCost !== reward.points
+  const canRedeem = userPoints >= effectiveCost && reward.available && !isRedeemed
 
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-lg ${isRedeemed ? "opacity-75" : ""}`}>
@@ -76,10 +93,15 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
             <span className="ml-1">{getCategoryText(reward.category)}</span>
           </Badge>
         </div>
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
           <Badge variant="secondary" className="bg-white/90 text-foreground">
-            {reward.points} pts
+            {effectiveCost} pts
           </Badge>
+          {flashActive && (
+            <Badge className="bg-red-500 text-white flex items-center gap-1 animate-pulse">
+              <Clock className="h-3 w-3" /> Flash
+            </Badge>
+          )}
         </div>
         {isRedeemed && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -110,21 +132,24 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
         {/* Points Status */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tus puntos</span>
-            <span className={`font-medium ${userPoints >= reward.points ? "text-green-600" : "text-red-600"}`}>
-              {userPoints} / {reward.points}
+            <span className="text-muted-foreground">Progreso</span>
+            <span className={`font-medium ${userPoints >= effectiveCost ? "text-green-600" : "text-red-600"}`}>
+              {userPoints} / {effectiveCost}
             </span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all ${
-                userPoints >= reward.points ? "bg-green-500" : "bg-primary"
+                userPoints >= effectiveCost ? "bg-green-500" : "bg-primary"
               }`}
               style={{
                 width: `${Math.min((userPoints / reward.points) * 100, 100)}%`,
               }}
             />
           </div>
+          {flashActive && (
+            <div className="text-[10px] text-red-600 font-medium">Oferta limitada termina en {timeLeft(reward.limitedUntil!)} • antes {reward.points} pts</div>
+          )}
         </div>
 
         {/* Redeem Button */}
@@ -151,8 +176,8 @@ export function RewardCard({ reward, userPoints, onRedeem, isRedeemed = false }:
                   Canjeando...
                 </>
               ) : !canRedeem ? (
-                userPoints < reward.points ? (
-                  `Necesitas ${reward.points - userPoints} puntos más`
+                userPoints < effectiveCost ? (
+                  `Necesitas ${effectiveCost - userPoints} puntos más`
                 ) : (
                   "No disponible"
                 )

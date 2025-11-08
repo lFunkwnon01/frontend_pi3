@@ -7,8 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { login } from "@/lib/auth"
+import { login, forgotPassword, socialLogin } from "@/lib/auth"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+import { Loader2, Facebook, Mail, Globe } from "lucide-react"
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -19,7 +23,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotLoading, setForgotLoading] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,6 +45,40 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       }
     } catch (err) {
       setError("Error al iniciar sesión")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleForgot = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotLoading(true)
+    try {
+      await forgotPassword(forgotEmail)
+      toast({
+        title: "Solicitud enviada",
+        description: "Si el correo existe te enviaremos instrucciones para recuperar tu contraseña.",
+      })
+      setForgotOpen(false)
+      setForgotEmail("")
+    } catch {
+      toast({ title: "Error", description: "No se pudo procesar la solicitud", })
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  const handleSocial = async (provider: "google" | "facebook") => {
+    setIsLoading(true)
+    try {
+      const user = await socialLogin(provider)
+      if (user) {
+        toast({ title: "Bienvenido", description: `Autenticado con ${provider === "google" ? "Google" : "Facebook"}` })
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch {
+      toast({ title: "Error", description: "Falló el inicio social" })
     } finally {
       setIsLoading(false)
     }
@@ -73,9 +115,47 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             />
           </div>
           {error && <div className="text-sm text-destructive text-center">{error}</div>}
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
-          </Button>
+          <div className="space-y-2">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin size-4" /> Iniciando...</span> : "Iniciar Sesión"}
+            </Button>
+            <div className="text-right">
+              <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="link" className="px-0 text-xs">Olvidé mi contraseña</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Recuperar contraseña</DialogTitle>
+                    <DialogDescription>Ingresa tu correo y te enviaremos un enlace de recuperación.</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleForgot} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="forgotEmail">Email</Label>
+                      <Input id="forgotEmail" type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} required />
+                    </div>
+                    <DialogFooter className="sm:justify-between">
+                      <Button variant="outline" type="button" onClick={() => setForgotOpen(false)}>Cancelar</Button>
+                      <Button type="submit" disabled={forgotLoading}>{forgotLoading ? <Loader2 className="animate-spin size-4" /> : "Enviar"}</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Separator className="my-4" />
+            <p className="text-xs font-medium text-center text-muted-foreground mb-3">O continúa con</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Button type="button" variant="outline" disabled={isLoading} onClick={() => handleSocial("google")} className="flex items-center gap-2">
+                <Globe className="size-4" /> Google
+              </Button>
+              <Button type="button" variant="outline" disabled={isLoading} onClick={() => handleSocial("facebook")} className="flex items-center gap-2">
+                <Facebook className="size-4" /> Facebook
+              </Button>
+            </div>
+          </div>
           
           {/* Demo Credentials */}
           <div className="space-y-2 pt-2 border-t">

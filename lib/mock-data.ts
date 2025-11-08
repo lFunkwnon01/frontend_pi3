@@ -18,17 +18,51 @@ export interface Report {
   beachId: string
   userId: string
   userName: string
-  type: "trash" | "pollution" | "clean"
+  type: ReportType
+  urgency: UrgencyLevel
   description: string
   image: string
-  location: {
-    lat: number
-    lng: number
-  }
+  location: { lat: number; lng: number }
   timestamp: string
-  status: "pending" | "verified" | "rejected"
+  status: ReportStatus
   points: number
   verifierComment?: string
+  communityValidations?: string[] // userIds who validated in person
+  validatedAt?: string // when community threshold reached
+  resolved?: boolean
+  resolvedAt?: string
+  resolvedImages?: { before: string; after: string } | null
+}
+
+export type ReportType =
+  | "trash"
+  | "oil_spill"
+  | "wildlife"
+  | "erosion"
+  | "water_pollution"
+  | "illegal_construction"
+  | "vehicles"
+  | "other"
+
+export type UrgencyLevel = "bajo" | "medio" | "alto" | "critico"
+export type ReportStatus = "pending" | "verified" | "rejected" | "community_validated" | "resolved"
+
+export const REPORT_TYPE_META: Record<ReportType, { label: string; color: string; icon: string }> = {
+  trash: { label: "Basura", color: "#6b7280", icon: "Trash2" },
+  oil_spill: { label: "Derrame de Petróleo", color: "#000000", icon: "Droplet" },
+  wildlife: { label: "Animales en Peligro", color: "#ef4444", icon: "PawPrint" },
+  erosion: { label: "Erosión Costera", color: "#9a3412", icon: "Waves" },
+  water_pollution: { label: "Contaminación de Agua", color: "#2563eb", icon: "Droplets" },
+  illegal_construction: { label: "Construcción Ilegal", color: "#7c3aed", icon: "Building" },
+  vehicles: { label: "Vehículos en la Playa", color: "#374151", icon: "Car" },
+  other: { label: "Otro", color: "#4b5563", icon: "AlertTriangle" },
+}
+
+export const URGENCY_BADGE: Record<UrgencyLevel, { label: string; className: string }> = {
+  bajo: { label: "Bajo", className: "bg-green-100 text-green-700" },
+  medio: { label: "Medio", className: "bg-yellow-100 text-yellow-700" },
+  alto: { label: "Alto", className: "bg-orange-100 text-orange-700" },
+  critico: { label: "Crítico", className: "bg-red-100 text-red-700" },
 }
 
 export interface Event {
@@ -49,6 +83,8 @@ export interface Event {
   status: "pending" | "approved" | "rejected" | "completed"
   chatId: string
   registeredUsers?: string[] // IDs de usuarios registrados
+  allyId?: string // patrocinado por aliado
+  isAllyExclusive?: boolean // evento exclusivo aliado/EcoPlaya
 }
 
 export interface ChatMessage {
@@ -75,10 +111,12 @@ export interface Reward {
   title: string
   description: string
   points: number
-  category: "discount" | "badge" | "experience"
+  category: "discount" | "badge" | "experience" | "nonmaterial"
   partner: string
   image: string
   available: boolean
+  limitedUntil?: string // ISO for flash offers
+  flashCost?: number // discounted points while active
 }
 
 // Mock beaches data
@@ -129,6 +167,7 @@ export const mockReports: Report[] = [
     userId: "1",
     userName: "Juan Pérez",
     type: "trash",
+    urgency: "medio",
     description: "Acumulación de botellas plásticas en la orilla",
     image: "/beach-trash-bottles.jpg",
     location: { lat: -12.1196, lng: -77.0365 },
@@ -142,7 +181,8 @@ export const mockReports: Report[] = [
     beachId: "3",
     userId: "2",
     userName: "María González",
-    type: "pollution",
+    type: "oil_spill",
+    urgency: "alto",
     description: "Mancha de aceite cerca del muelle",
     image: "/oil-spill-beach.jpg",
     location: { lat: -12.1467, lng: -77.0208 },
@@ -156,6 +196,7 @@ export const mockReports: Report[] = [
     userId: "1",
     userName: "Juan Pérez",
     type: "trash",
+    urgency: "bajo",
     description: "Residuos plásticos en zona rocosa",
     image: "/placeholder.jpg",
     location: { lat: -12.0464, lng: -77.0428 },
@@ -169,7 +210,8 @@ export const mockReports: Report[] = [
     beachId: "2",
     userId: "1",
     userName: "Juan Pérez",
-    type: "clean",
+    type: "other",
+    urgency: "bajo",
     description: "Zona completamente limpia después de evento",
     image: "/placeholder.jpg",
     location: { lat: -12.1196, lng: -77.0365 },
@@ -419,7 +461,14 @@ export interface Ally {
   descripcion: string
   actividades: string[]
   rating?: number
-  social_links?: { twitter?: string; instagram?: string; web?: string }
+  social_links?: { twitter?: string; instagram?: string; web?: string; facebook?: string; whatsapp?: string; email?: string }
+  categoria?: "restaurant" | "eco-shop" | "surf-school" | "ngo" | "municipality" | "other"
+  fotos?: string[]
+  ubicacion?: { lat: number; lng: number; direccion?: string }
+  horarios?: { dias: string; abre: string; cierra: string }[]
+  descuentos?: { titulo: string; descripcion: string; pct?: number; validoHasta?: string }[]
+  certificacion?: "Bronce" | "Plata" | "Oro" | "Platino"
+  impacto?: { voluntariosPorPlataforma: number; eventosPatrocinados: number; redenciones: number }
 }
 
 export const mockAllies: Ally[] = [
@@ -434,7 +483,14 @@ export const mockAllies: Ally[] = [
       "Surf Peru — Clases de surf para todas las edades y niveles. Instructores certificados. Ofrecemos clases individuales y grupales, alquiler de equipos, camps de verano y entrenamiento personalizado.",
     actividades: ["Clases de surf", "Alquiler de equipos", "Camps"],
     rating: 4.7,
-    social_links: { instagram: "@surfchorrillos" },
+    social_links: { instagram: "@surfchorrillos", whatsapp: "+51900000000", email: "contacto@surfperu.com" },
+    categoria: "surf-school",
+    fotos: ["/ally_surf_1.jpg","/ally_surf_2.jpg","/ally_surf_3.jpg"],
+    ubicacion: { lat: -12.167, lng: -77.021, direccion: "Costa Verde, Chorrillos" },
+    horarios: [ { dias: "L-V", abre: "06:00", cierra: "18:00" }, { dias: "S-D", abre: "06:00", cierra: "19:00" } ],
+    descuentos: [ { titulo: "10% off clases", descripcion: "Para miembros EcoPlaya", pct: 10, validoHasta: new Date(Date.now()+1000*60*60*24*10).toISOString() } ],
+    certificacion: "Plata",
+    impacto: { voluntariosPorPlataforma: 124, eventosPatrocinados: 6, redenciones: 48 },
   },
   {
     id: "a-2",
@@ -447,7 +503,14 @@ export const mockAllies: Ally[] = [
       "Aloha Perú — Escuela de surf y actividades costeras. Clases de surf para niños y adultos, talleres de reciclaje comunitario y programas de voluntariado en la playa.",
     actividades: ["Clases de surf", "Reciclaje/Voluntariado"],
     rating: 4.5,
-    social_links: { web: "https://reciclaya.example" },
+    social_links: { web: "https://reciclaya.example", instagram: "@alohaperu" },
+    categoria: "surf-school",
+    fotos: ["/ally_aloha_1.jpg","/ally_aloha_2.jpg"],
+    ubicacion: { lat: -12.121, lng: -77.033, direccion: "Playa Makaha, Miraflores" },
+    horarios: [ { dias: "Todos", abre: "07:00", cierra: "19:00" } ],
+    descuentos: [ { titulo: "2x1 taller reciclaje", descripcion: "Solo este mes", validoHasta: new Date(Date.now()+1000*60*60*24*5).toISOString() } ],
+    certificacion: "Oro",
+    impacto: { voluntariosPorPlataforma: 210, eventosPatrocinados: 12, redenciones: 120 },
   },
   {
     id: "a-3",
@@ -460,6 +523,11 @@ export const mockAllies: Ally[] = [
       "Caplina — Clases de Stand Up Paddle (SUP) y yoga sobre tabla. Ofrecemos salidas guiadas, sesiones de yoga en la costa, alquiler de tablas y entrenamiento para todos los niveles.",
     actividades: ["SUP", "Yoga en tablas", "Alquiler de equipos"],
     rating: 4.9,
+    categoria: "surf-school",
+    fotos: ["/ally_caplina_1.jpg"],
+    ubicacion: { lat: -12.147, lng: -77.021, direccion: "Bajada de Baños, Barranco" },
+    certificacion: "Bronce",
+    impacto: { voluntariosPorPlataforma: 56, eventosPatrocinados: 3, redenciones: 20 },
   },
   {
     id: "a-4",
@@ -472,6 +540,9 @@ export const mockAllies: Ally[] = [
       "Lima Food Boat — Experiencias gastronómicas y paseos en bote. También ofrecemos alquiler de tablas, tours costeros y servicios de catering para eventos en la costa.",
     actividades: ["Alquiler de equipos", "Tours gastronómicos"],
     rating: 4.2,
+    categoria: "restaurant",
+    ubicacion: { lat: -12.0735, lng: -77.078, direccion: "Costa Verde, San Miguel" },
+    certificacion: "Plata",
   },
   {
     id: "a-5",
@@ -481,6 +552,8 @@ export const mockAllies: Ally[] = [
   banner_url: "/surf-barranco-banner.jpg",
     descripcion: "Clases y camps de verano para jóvenes y adultos.",
     actividades: ["Clases de surf", "Alquiler de equipos"],
+    categoria: "surf-school",
+    certificacion: "Bronce",
   },
 ]
 
@@ -507,7 +580,7 @@ export const mockServices: Service[] = [
     allyId: "a-1",
     titulo: "Clase de Surf - Nivel Inicial",
     descripcion: "Clase individual de 1 hora para principiantes. Tablas incluidas.",
-  imagen_url: "/imagen_1d.jpg",
+    imagen_url: "/imagen_1d.jpg",
     precio: 35,
     moneda: "USD",
     duracion: "1 hora",
@@ -522,7 +595,7 @@ export const mockServices: Service[] = [
     allyId: "a-1",
     titulo: "Alquiler de Tabla - Medio Día",
     descripcion: "Alquiler de tabla por medio día (4 horas).",
-  imagen_url: "/imagen_2d.jpg",
+    imagen_url: "/imagen_2d.jpg",
     precio: 20,
     moneda: "USD",
     duracion: "4 horas",
@@ -545,6 +618,13 @@ export const mockServices: Service[] = [
     categorias: ["Reciclaje/Voluntariado"],
     disponibilidad: ["2025-10-29", "2025-11-03"],
   },
+]
+
+// Simple testimonials by ally (mock/local)
+export interface AllyTestimonial { id: string; allyId: string; user: string; comment: string; rating: number; created: string }
+export const mockAllyTestimonials: AllyTestimonial[] = [
+  { id: 't-1', allyId: 'a-1', user: 'Lucía', comment: 'Excelentes clases, súper pacientes.', rating: 5, created: new Date().toISOString() },
+  { id: 't-2', allyId: 'a-2', user: 'Carlos', comment: 'El taller de reciclaje estuvo buenazo.', rating: 5, created: new Date().toISOString() },
 ]
 
 // Mock bookings (empty initial)
@@ -572,6 +652,8 @@ export const mockRewards: Reward[] = [
     partner: "Café Oceánico",
   image: "/recompensas_1.jpg",
     available: true,
+    limitedUntil: new Date(Date.now() + 1000*60*60*48).toISOString(),
+    flashCost: 100,
   },
   {
     id: "2",
@@ -613,6 +695,56 @@ export const mockRewards: Reward[] = [
   image: "/recompensa_5.jpg",
     available: true,
   },
+  // Non-material rewards
+  {
+    id: "nm-1",
+    title: "Mención en el post mensual de agradecimiento",
+    description: "Tu nombre aparecerá en nuestro post mensual",
+    points: 50,
+    category: "nonmaterial",
+    partner: "EcoPlaya",
+    image: "/ocean-guardian-badge.jpg",
+    available: true,
+  },
+  {
+    id: "nm-2",
+    title: "Certificado Digital de Participación",
+    description: "Recibe un certificado digital por tu aporte",
+    points: 100,
+    category: "nonmaterial",
+    partner: "EcoPlaya",
+    image: "/placeholder.jpg",
+    available: true,
+  },
+  {
+    id: "nm-3",
+    title: "Video-saludo de fundadores",
+    description: "Un agradecimiento personalizado en video",
+    points: 500,
+    category: "nonmaterial",
+    partner: "EcoPlaya",
+    image: "/placeholder.jpg",
+    available: true,
+  },
+]
+
+// Marketplace offers mock (eco-friendly)
+export interface MarketplaceOffer {
+  id: string
+  title: string
+  description: string
+  points: number
+  partner: string
+  image: string
+  category: 'bamboo' | 'organic_clothing' | 'eco_tour' | 'surf_class'
+  available: boolean
+}
+
+export const mockMarketplace: MarketplaceOffer[] = [
+  { id: 'm1', title: 'Set de utensilios de bambú', description: 'Cubiertos y sorbete reutilizables', points: 200, partner: 'EcoStore', image: '/placeholder.jpg', category: 'bamboo', available: true },
+  { id: 'm2', title: 'Camiseta de algodón orgánico', description: 'Talla a elección', points: 350, partner: 'EcoTextiles', image: '/placeholder.jpg', category: 'organic_clothing', available: true },
+  { id: 'm3', title: 'Tour ecológico en kayak', description: 'Recorrido guiado por zonas protegidas', points: 800, partner: 'AquaAdventures', image: '/placeholder.jpg', category: 'eco_tour', available: true },
+  { id: 'm4', title: 'Clase de surf (1h)', description: 'Instructor certificado y equipo incluido', points: 250, partner: 'Surf Peru', image: '/placeholder.jpg', category: 'surf_class', available: true },
 ]
 
 // Mock impact statistics
@@ -624,3 +756,72 @@ export const mockImpactStats = {
   co2Prevented: 8930, // kg
   monthlyGrowth: 23, // percentage
 }
+
+// Community activity feed (latest first)
+export interface CommunityActivity {
+  id: string
+  userName: string
+  userAvatar: string
+  message: string
+  timestamp: string // ISO
+  type: "join" | "report" | "badge"
+}
+
+export const mockCommunityActivities: CommunityActivity[] = [
+  {
+    id: "act-7",
+    userName: "Ana",
+    userAvatar: "/abstract-profile.png",
+    message: "desbloqueó el badge Guardián del Mar",
+    timestamp: new Date().toISOString(),
+    type: "badge",
+  },
+  {
+    id: "act-6",
+    userName: "Carlos",
+    userAvatar: "/abstract-profile.png",
+    message: "reportó basura en Playa Barranco",
+    timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    type: "report",
+  },
+  {
+    id: "act-5",
+    userName: "María",
+    userAvatar: "/abstract-profile.png",
+    message: "se unió al evento Limpieza Miraflores",
+    timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+    type: "join",
+  },
+  {
+    id: "act-4",
+    userName: "Diego",
+    userAvatar: "/abstract-profile.png",
+    message: "reportó un derrame en Playa San Miguel",
+    timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
+    type: "report",
+  },
+  {
+    id: "act-3",
+    userName: "Lucía",
+    userAvatar: "/abstract-profile.png",
+    message: "se unió al evento Restauración de Dunas - Barranco",
+    timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
+    type: "join",
+  },
+  {
+    id: "act-2",
+    userName: "Jorge",
+    userAvatar: "/abstract-profile.png",
+    message: "desbloqueó el badge Reportero Costero",
+    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    type: "badge",
+  },
+  {
+    id: "act-1",
+    userName: "Valeria",
+    userAvatar: "/abstract-profile.png",
+    message: "reportó basura en Playa Miraflores",
+    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    type: "report",
+  },
+]

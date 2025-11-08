@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Camera, Calendar, Award, GraduationCap, Users } from "lucide-react"
+import { MapPin, Camera, Calendar, Award, GraduationCap, Users, Star } from "lucide-react"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 import { getCurrentUser } from "@/lib/auth"
 
@@ -77,6 +77,12 @@ export default function HomePage() {
     { src: "/logo de tambo.png", alt: "Tambo" },
     { src: "/metro logo.jpeg", alt: "Metro" },
   ]
+
+  // Winner foto del mes (guardada por concurso EcoShare) en localStorage
+  let monthlyWinner: { month: string; photo: string; likes: number; author?: string } | null = null
+  if (typeof window !== 'undefined') {
+    try { monthlyWinner = JSON.parse(localStorage.getItem('ecoshare_monthly_winner') || 'null') } catch {}
+  }
 
   return (
     <div className="min-h-screen">
@@ -218,6 +224,23 @@ export default function HomePage() {
               <div className="text-muted-foreground">Eventos Completados</div>
             </div>
           </div>
+          {monthlyWinner && (
+            <div className="mt-12 max-w-3xl mx-auto">
+              <h3 className="text-2xl font-bold flex items-center justify-center gap-2 mb-4"><Star className="h-6 w-6 text-primary"/> Foto del Mes</h3>
+              <div className="rounded-lg overflow-hidden shadow border bg-background">
+                <img src={monthlyWinner.photo} alt="Foto ganadora" className="w-full max-h-[480px] object-cover" />
+                <div className="p-4 flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-semibold">Ganadora del mes {monthlyWinner.month}</div>
+                    <div className="text-muted-foreground">{monthlyWinner.likes} likes • {monthlyWinner.author || 'Autor desconocido'}</div>
+                  </div>
+                  <Button size="sm" variant="outline" asChild>
+                    <a href="/ecoshare">Ver concurso</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

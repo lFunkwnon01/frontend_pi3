@@ -4,6 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import AllyBadge from "@/components/aliados/ally-badge"
 
 interface AllyCardProps {
   id: string
@@ -13,9 +14,10 @@ interface AllyCardProps {
   banner_url?: string
   descripcion: string
   actividades: string[]
+  certificacion?: "Bronce"|"Plata"|"Oro"|"Platino"
 }
 
-export function AllyCard({ id, nombre, distrito, logo_url, banner_url, descripcion, actividades }: AllyCardProps) {
+export function AllyCard({ id, nombre, distrito, logo_url, banner_url, descripcion, actividades, certificacion }: AllyCardProps) {
   return (
     <Card className="cursor-pointer hover:shadow-md transition-shadow">
       {banner_url && (
@@ -35,6 +37,7 @@ export function AllyCard({ id, nombre, distrito, logo_url, banner_url, descripci
           <div className="flex-1">
             <CardTitle className="text-base">{nombre}</CardTitle>
             <CardDescription className="text-xs">{distrito}</CardDescription>
+            <div className="mt-1"><AllyBadge level={certificacion} /></div>
             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{descripcion}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {actividades.slice(0, 3).map((a) => (

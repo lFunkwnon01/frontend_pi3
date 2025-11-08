@@ -6,6 +6,9 @@ import { BeachMap } from "@/components/map/beach-map"
 import { getCurrentUser, type User } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, Users, Calendar } from "lucide-react"
+import { CommunityImpactWidget } from "@/components/impact/community-impact-widget"
+import { CommunityFeed } from "@/components/dashboard/community-feed"
+import { RecommendedEvents } from "@/components/events/recommended-events"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -34,14 +37,17 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">¡Bienvenido de vuelta, {user.name}!</h1>
-          <p className="text-muted-foreground">Explora el estado de nuestras playas y contribuye a su cuidado</p>
-        </div>
+        {/* Layout with right sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            {/* Welcome Section */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-foreground mb-2">¡Bienvenido de vuelta, {user.name}!</h1>
+              <p className="text-muted-foreground">Explora el estado de nuestras playas y contribuye a su cuidado</p>
+            </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Tus Puntos</CardTitle>
@@ -85,13 +91,18 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground mt-1">Limpieza Miraflores</p>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Beach Map */}
-        <BeachMap />
+            {/* Beach Map */}
+            <BeachMap />
 
-        {/* Secciones resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+            {/* Recomendado para ti */}
+            <div className="mt-8">
+              <RecommendedEvents />
+            </div>
+
+            {/* Secciones resumen */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           {/* Eventos */}
           <Card className="flex flex-col justify-between">
             <CardHeader>
@@ -152,10 +163,10 @@ export default function DashboardPage() {
               </button>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Sección educativa: capacitación y aprendizaje (ahora al fondo) */}
-        <section className="py-12">
+            {/* Sección educativa: capacitación y aprendizaje (ahora al fondo) */}
+            <section className="py-12">
           <h2 className="text-3xl font-bold text-primary mb-8">Capacitación y Aprendizaje</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="flex flex-col">
@@ -221,8 +232,16 @@ export default function DashboardPage() {
                 </ul>
               </CardContent>
             </Card>
+              </div>
+            </section>
           </div>
-        </section>
+
+          {/* Right sidebar: community impact + feed */}
+          <div className="lg:col-span-1 space-y-6">
+            <CommunityImpactWidget />
+            <CommunityFeed />
+          </div>
+        </div>
       </div>
     </div>
   )

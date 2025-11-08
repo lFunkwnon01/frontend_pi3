@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, Clock, MapPin, Users, Award, CheckCircle, ExternalLink } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Award, CheckCircle, ExternalLink, Sparkles } from "lucide-react"
 import type { Event } from "@/lib/mock-data"
 
 interface EventCardProps {
@@ -41,9 +41,10 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
     })
   }
 
-  const getVolunteerPercentage = () => {
-    return Math.round((event.volunteers / event.maxVolunteers) * 100)
-  }
+  const getVolunteerPercentage = () => Math.round((event.volunteers / event.maxVolunteers) * 100)
+  const remaining = event.maxVolunteers - event.volunteers
+  const isFull = remaining <= 0
+  const isLastSpots = !isFull && remaining <= 5
 
   return (
     <Card className="overflow-hidden">
@@ -55,6 +56,21 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
             {event.points} pts
           </Badge>
         </div>
+        {event as any && (event as any).isAllyExclusive && (
+          <div className="absolute top-4 left-4">
+            <Badge className="bg-amber-500 text-white"><Sparkles className="h-3 w-3 mr-1"/>Evento de Aliado</Badge>
+          </div>
+        )}
+        {!isFull && isLastSpots && (
+          <div className="absolute top-4 left-4">
+            <Badge variant="destructive" className="animate-pulse">Últimos lugares</Badge>
+          </div>
+        )}
+        {isFull && (
+          <div className="absolute top-4 left-4">
+            <Badge variant="secondary" className="bg-gray-800/80 text-white">Completo</Badge>
+          </div>
+        )}
       </div>
 
       <CardHeader>
@@ -101,14 +117,16 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Participación</span>
-            <span className="font-medium">{getVolunteerPercentage()}%</span>
+            <span className="font-medium">{event.volunteers}/{event.maxVolunteers}</span>
           </div>
-          <div className="w-full bg-muted rounded-full h-2">
+          <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <div
-              className="bg-primary h-2 rounded-full transition-all"
+              className={`${isFull ? 'bg-red-600' : 'bg-primary'} h-2 rounded-full transition-all`}
               style={{ width: `${getVolunteerPercentage()}%` }}
             />
           </div>
+          {isFull && <p className="text-xs text-red-600 font-semibold">Evento lleno</p>}
+          {!isFull && isLastSpots && <p className="text-xs text-red-600 font-semibold">Quedan {remaining} lugares</p>}
         </div>
 
   {/* Kit básico info (mobile/desktop) */}
@@ -139,16 +157,17 @@ export function EventCard({ event, onRegister, isRegistered = false }: EventCard
           {!isRegistered && (
             <Button
               onClick={handleRegister}
-              disabled={isRegistering || event.volunteers >= event.maxVolunteers}
+              disabled={isRegistering || isFull}
               className="w-full"
+              variant={isFull ? 'secondary' : 'default'}
             >
               {isRegistering ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Registrando...
                 </>
-              ) : event.volunteers >= event.maxVolunteers ? (
-                "Evento Completo"
+              ) : isFull ? (
+                'Completo'
               ) : (
                 <>
                   <Users className="h-4 w-4 mr-2" />

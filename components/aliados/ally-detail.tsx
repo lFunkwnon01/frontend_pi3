@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { mockAllies, mockServices, type Ally, type Service } from "@/lib/mock-data"
+import { mockAllies, mockServices, mockAllyTestimonials, type Ally, type Service, type AllyTestimonial } from "@/lib/mock-data"
+import AllyBadge from "@/components/aliados/ally-badge"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import ServiceCard from "@/components/aliados/service-card"
@@ -37,8 +38,15 @@ export function AllyDetail({ allyId }: AllyDetailProps) {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">{ally.nombre}</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2">{ally.nombre} <AllyBadge level={ally.certificacion as any}/></h2>
             <div className="text-sm text-muted-foreground">{ally.distrito}</div>
+            {ally.descuentos && ally.descuentos.length>0 && (
+              <div className="mt-1 flex flex-wrap gap-2">
+                {ally.descuentos.map(d => (
+                  <span key={d.titulo} className="text-[11px] px-2 py-1 rounded bg-green-100 text-green-700">{d.titulo}{d.pct?` (${d.pct}%)`:''}</span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -94,11 +102,79 @@ export function AllyDetail({ allyId }: AllyDetailProps) {
                 <ServiceCard key={s.id} service={s} ally={ally} />
               ))}
             </div>
+            {ally.fotos && ally.fotos.length>0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-2">Galería</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {ally.fotos.map(f => <img key={f} src={f} alt="foto aliado" className="rounded-md h-32 w-full object-cover" />)}
+                </div>
+              </div>
+            )}
+            {mockAllies.filter(e=>e.id!==ally.id).slice(0,3).length>0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-2">Eventos Patrocinados (mock)</h3>
+                <ul className="text-sm list-disc pl-5 text-muted-foreground">
+                  {(ally.impacto?.eventosPatrocinados ? Array.from({length: ally.impacto.eventosPatrocinados}).map((_,i)=>`Evento patrocinado #${i+1}`) : ["Clínica de Surf", "Taller Reciclaje", "Salida SUP"]).slice(0,5).map(e=> <li key={e}>{e}</li>)}
+                </ul>
+              </div>
+            )}
+            {ally.certificacion && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-2">Compromiso Ambiental</h3>
+                <p className="text-sm text-muted-foreground">Nivel de certificación: {ally.certificacion}. Este aliado demuestra compromiso mediante acciones sostenibles continuas.</p>
+              </div>
+            )}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-2">Testimonios</h3>
+              <div className="space-y-3">
+                {mockAllyTestimonials.filter(t=>t.allyId===ally.id).map((t: AllyTestimonial)=>(
+                  <div key={t.id} className="border rounded-md p-3 text-sm">
+                    <div className="font-semibold">{t.user} <span className="text-yellow-500">{'★'.repeat(t.rating)}</span></div>
+                    <p className="text-muted-foreground mt-1">{t.comment}</p>
+                  </div>
+                ))}
+                {mockAllyTestimonials.filter(t=>t.allyId===ally.id).length===0 && <p className="text-xs text-muted-foreground">Sin testimonios aún.</p>}
+              </div>
+            </div>
           </div>
 
           <aside className="bg-card rounded-md p-4">
             <h4 className="font-semibold">Sobre {ally.nombre}</h4>
             <p className="text-sm text-muted-foreground mt-2">{ally.descripcion}</p>
+            {ally.ubicacion && (
+              <div className="mt-4 text-xs">
+                <div className="font-medium mb-1">Ubicación</div>
+                <div>{ally.ubicacion.direccion}</div>
+                <div className="mt-2 h-40 w-full rounded bg-muted flex items-center justify-center text-muted-foreground text-xs">Mapa (mock)</div>
+              </div>
+            )}
+            {ally.horarios && (
+              <div className="mt-4 text-xs">
+                <div className="font-medium mb-1">Horarios</div>
+                <ul className="space-y-1">
+                  {ally.horarios.map(h => <li key={h.dias}>{h.dias}: {h.abre} - {h.cierra}</li>)}
+                </ul>
+              </div>
+            )}
+            {ally.social_links && (
+              <div className="mt-4 text-xs space-y-1">
+                <div className="font-medium mb-1">Redes</div>
+                {ally.social_links.instagram && <div>Instagram: {ally.social_links.instagram}</div>}
+                {ally.social_links.web && <div>Web: {ally.social_links.web}</div>}
+                {ally.social_links.whatsapp && <div>WhatsApp: {ally.social_links.whatsapp}</div>}
+                {ally.social_links.email && <div>Email: {ally.social_links.email}</div>}
+              </div>
+            )}
+            {ally.impacto && (
+              <div className="mt-4 text-xs">
+                <div className="font-medium mb-1">Impacto</div>
+                <ul className="space-y-1">
+                  <li>Voluntarios vía plataforma: {ally.impacto.voluntariosPorPlataforma}</li>
+                  <li>Eventos patrocinados: {ally.impacto.eventosPatrocinados}</li>
+                  <li>Descuentos redimidos: {ally.impacto.redenciones}</li>
+                </ul>
+              </div>
+            )}
             <div className="mt-4">
               <Link href={`/aliados`}>Volver a Aliados</Link>
             </div>

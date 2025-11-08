@@ -10,11 +10,26 @@ export interface AllyCapabilities {
   insurance?: boolean
 }
 
+export type AllyCertification = "Bronce" | "Plata" | "Oro" | "Platino"
+
 export interface AllyRef {
   id: string
   name: string
   capabilities: AllyCapabilities
   notes?: string
+  // Extended fields for ally directory and profiles
+  logoUrl?: string
+  bannerUrl?: string
+  fullDescription?: string
+  photos?: string[]
+  services?: { id: string; title: string; price?: number; unit?: string }[]
+  category?: "restaurant" | "eco-shop" | "surf-school" | "ngo" | "municipality" | "other"
+  location?: { lat: number; lng: number; address?: string; district?: District }
+  hours?: { days: string; open: string; close: string }[]
+  socials?: { instagram?: string; facebook?: string; web?: string; whatsapp?: string; email?: string }
+  discounts?: { title: string; description: string; pct?: number; validUntil?: string }[]
+  certification?: AllyCertification
+  impact?: { volunteersViaPlatform?: number; sponsoredEvents?: number; redeemedDiscounts?: number }
 }
 
 export interface OrganizerRef {
@@ -58,6 +73,8 @@ export interface EventAdvanced {
   activities: string[]
   organizer: OrganizerRef
   allies: AllyRef[]
+  allyId?: string // owner/sponsor ally id (if applicable)
+  isAllyExclusive?: boolean // events for EcoPlaya community hosted by an ally
   requirements?: Requirements
   benefits?: Benefits
   capacity?: Capacity
@@ -174,7 +191,7 @@ export const mockEventsAdvanced: EventAdvanced[] = [
     requirements: { mustKnowSwimming: true, minAge: 14, waiver: true },
     benefits: { points: 80, certificate: true, volunteerHours: 3 },
     capacity: { maxVolunteers: 40 },
-    images: ["/evento_1.jpeg"],
+    images: ["/evento_3.jpeg"],
     status: "upcoming",
   },
   {

@@ -7,22 +7,41 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RewardCard } from "./reward-card"
 import { Award, Gift, Star, TrendingUp, Target, History } from "lucide-react"
-import { mockRewards, type Reward } from "@/lib/mock-data"
-import { getCurrentUser } from "@/lib/auth"
+import { mockRewards, type Reward, mockMarketplace } from "@/lib/mock-data"
+import { getCurrentUser, ensureReferralCode, getReferralLeaderboard, type User } from "@/lib/auth"
+import { Progress } from "@/components/ui/progress"
 
 export function RewardsDashboard() {
   const [rewards, setRewards] = useState<Reward[]>([])
   const [redeemedRewards, setRedeemedRewards] = useState<string[]>([])
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [filter, setFilter] = useState<"all" | "available" | "redeemed">("all")
 
   useEffect(() => {
     setRewards(mockRewards)
-    setUser(getCurrentUser())
+    const u = getCurrentUser()
+    if (u) ensureReferralCode()
+  setUser(getCurrentUser())
     // Load redeemed rewards from localStorage
     const redeemed = JSON.parse(localStorage.getItem("redeemedRewards") || "[]")
     setRedeemedRewards(redeemed)
   }, [])
+  // Level system
+  const LEVELS = [
+    { name: 'Novato', min: 0, max: 500 },
+    { name: 'Voluntario', min: 501, max: 1000 },
+    { name: 'Guardián', min: 1001, max: 2000 },
+    { name: 'Protector', min: 2001, max: 5000 },
+    { name: 'Héroe Eco', min: 5001, max: Infinity },
+  ]
+  const currentLevel = user ? (LEVELS.find(l => user.points >= l.min && user.points <= l.max) || LEVELS[0]) : LEVELS[0]
+  const nextLevel = LEVELS.find(l => l.min > currentLevel.min) || currentLevel
+  const progressPct = user ? (currentLevel.max === Infinity ? 100 : ((user.points - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100) : 0
+  const pointsToNext = user ? (nextLevel.min > user.points ? nextLevel.min - user.points : 0) : 0
+
+  const leaderboard = getReferralLeaderboard()
+  const referralUrl = typeof window !== 'undefined' && user ? `${window.location.origin}/events?ref=${user.referralCode}` : ''
+
 
   const handleRedeem = (rewardId: string) => {
     const newRedeemed = [...redeemedRewards, rewardId]
@@ -33,7 +52,7 @@ export function RewardsDashboard() {
   const filteredRewards = rewards.filter((reward) => {
     switch (filter) {
       case "available":
-        return reward.available && !redeemedRewards.includes(reward.id) && user?.points >= reward.points
+        return reward.available && !redeemedRewards.includes(reward.id) && (!!user && user.points >= reward.points)
       case "redeemed":
         return redeemedRewards.includes(reward.id)
       default:
@@ -42,7 +61,7 @@ export function RewardsDashboard() {
   })
 
   const availableRewards = rewards.filter((r) => r.available && !redeemedRewards.includes(r.id))
-  const canRedeemCount = availableRewards.filter((r) => user?.points >= r.points).length
+  const canRedeemCount = availableRewards.filter((r) => user && user.points >= r.points).length
 
   if (!user) return null
 
@@ -64,7 +83,49 @@ export function RewardsDashboard() {
               </Badge>
             </div>
           </div>
+          <div className="mt-6 space-y-2">
+            <div className="flex justify-between text-xs">
+              <span>Nivel actual: {currentLevel.name}</span>
+              {currentLevel.max !== Infinity && <span>Próximo: {nextLevel.name} ({pointsToNext} pts)</span>}
+            </div>
+            <Progress value={progressPct} className="h-3" />
+            {currentLevel.max === Infinity ? (
+              <div className="text-xs text-green-700">Has alcanzado el máximo nivel. ¡Eres un Héroe Eco! 🌟</div>
+            ) : (
+              <div className="text-xs text-muted-foreground">Te faltan {pointsToNext} puntos para {nextLevel.name}</div>
+            )}
+          </div>
         </CardHeader>
+      </Card>
+
+      {/* Referral section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Programa de Referidos</CardTitle>
+          <CardDescription>Comparte tu código y gana 200 puntos por nuevos voluntarios</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <div className="text-sm">Tu código: <span className="font-mono font-semibold">{user.referralCode}</span></div>
+            <Button size="sm" variant="outline" onClick={()=>navigator.clipboard.writeText(referralUrl)}>Copiar link</Button>
+            <Button size="sm" variant="secondary" onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent('Únete a EcoPlaya con mi código '+referralUrl)}`,'_blank')}>Compartir WhatsApp</Button>
+          </div>
+          <div className="text-xs text-muted-foreground">Ambos reciben 200 pts cuando el referido completa su primer evento.</div>
+          {leaderboard.length>0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Top Referidores del Mes</h4>
+              <div className="space-y-1 text-xs">
+                {leaderboard.map((l,i)=>(
+                  <div key={l.code} className="flex justify-between border rounded px-2 py-1">
+                    <span className="font-mono">{l.code}</span>
+                    <span className="font-semibold">{l.count}</span>
+                  </div>
+                ))}
+                {leaderboard.length===0 && <div className="text-muted-foreground">Sin referidos aún</div>}
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Quick Stats */}
@@ -203,6 +264,29 @@ export function RewardsDashboard() {
         </TabsContent>
       </Tabs>
 
+      {/* Marketplace Eco */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Gift className="h-5 w-5"/> Marketplace Eco</CardTitle>
+          <CardDescription>Productos y servicios eco-friendly ofrecidos por aliados</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {mockMarketplace.map(item => (
+              <div key={item.id} className="border rounded-lg p-3 flex flex-col">
+                <img src={item.image} alt={item.title} className="h-32 w-full object-cover rounded mb-2" />
+                <div className="font-medium text-sm mb-1">{item.title}</div>
+                <div className="text-xs text-muted-foreground mb-2 line-clamp-3">{item.description}</div>
+                <div className="flex justify-between items-center mt-auto">
+                  <Badge variant="secondary">{item.points} pts</Badge>
+                  <Button size="sm" disabled={user.points < item.points}>Canjear</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* How to Earn Points */}
       <Card>
         <CardHeader>
@@ -232,7 +316,7 @@ export function RewardsDashboard() {
               <Star className="h-8 w-8 text-primary mx-auto mb-2" />
               <h4 className="font-medium mb-1">Invitar Amigos</h4>
               <p className="text-sm text-muted-foreground mb-2">Comparte la plataforma con otros</p>
-              <Badge variant="secondary">100 puntos</Badge>
+              <Badge variant="secondary">200 puntos</Badge>
             </div>
           </div>
         </CardContent>
