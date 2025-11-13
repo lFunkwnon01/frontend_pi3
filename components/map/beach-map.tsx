@@ -22,6 +22,7 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
   const [district, setDistrict] = useState<string>("")
   const [popup, setPopup] = useState<{ top: number; left: number; beach: Beach } | null>(null)
   const router = useRouter()
+  const [bgOk, setBgOk] = useState(true)
 
   useEffect(() => {
     setBeaches(mockBeaches)
@@ -162,7 +163,11 @@ export function BeachMap({ onBeachSelect }: BeachMapProps) {
 
           {/* Imagen real de mapa de Costa Verde con marcadores interactivos */}
           <div className="relative rounded-lg h-[30rem] md:h-[36rem] overflow-hidden flex items-center justify-center bg-gray-100">
-            <img src="/costa_verde.png" alt="Mapa Costa Verde" className="object-cover w-full h-full" />
+            {bgOk ? (
+              <img src="/costa_verde.png" alt="Mapa Costa Verde" className="object-cover w-full h-full" onError={() => setBgOk(false)} />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-teal-50" />
+            )}
 
             {/* Overlay markers: position absolutely using a simple lat/lng -> percentage transform within a predefined bbox (mock) */}
             <div className="absolute inset-0 pointer-events-none">
