@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { getCurrentUser, type User } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Heart, MessageCircle, Share2, Users, Calendar, MapPin, Film, Download, Clock, Hash } from "lucide-react"
 import Image from "next/image"
 import TestimonialsSection from "@/components/ecoshare/testimonials"
@@ -32,11 +31,10 @@ interface EventAlbum {
 }
 
 export default function EcoSharePage() {
-  const [user, setUser] = useState<User | null>(null)
+  const user = getCurrentUser()
   const router = useRouter()
   const [selectedTag, setSelectedTag] = useState<string>("")
 
-  // Mock data de álbumes
   const albums: EventAlbum[] = [
     {
       id: "1",
@@ -103,25 +101,7 @@ export default function EcoSharePage() {
     },
   ]
 
-  useEffect(() => {
-    const currentUser = getCurrentUser()
-    if (!currentUser) {
-      router.push("/auth")
-      return
-    }
-    setUser(currentUser)
-  }, [router])
-
-    if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    )
-  }
+  if (!user) return null
 
   const getStatusBadge = (album: EventAlbum) => {
     if (album.status === "collecting") {
@@ -149,70 +129,64 @@ export default function EcoSharePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center">
-            <Camera className="h-8 w-8 mr-3 text-primary" />
-            EcoShare
-          </h1>
-          <p className="text-muted-foreground">
-            Comparte momentos de nuestros eventos de limpieza y celebra el impacto colectivo
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center">
+          <Camera className="h-8 w-8 mr-3 text-primary" />
+          EcoShare
+        </h1>
+        <p className="text-muted-foreground">
+          Comparte momentos de nuestros eventos de limpieza y celebra el impacto colectivo
+        </p>
+      </div>
 
-        {/* Info Banner */}
-  <Card className="mb-8 bg-linear-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 border-cyan-200">
-          <CardContent className="pt-6">
-            <div className="flex items-start space-x-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <Camera className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
-                  ¿Cómo funciona EcoShare?
-                </h3>
-                <p className="text-sm text-cyan-700 dark:text-cyan-300 mb-3">
-                  Después de cada evento, los participantes pueden subir fotos al álbum compartido. Tras 3-5
-                  días, todas las fotos se convierten automáticamente en un video memorable que puedes
-                  descargar y compartir en tus redes sociales.
-                </p>
-                <div className="flex flex-wrap gap-2 text-xs text-cyan-600 dark:text-cyan-400">
-                  <span>✓ Solo participantes pueden subir fotos</span>
-                  <span>•</span>
-                  <span>✓ Video generado automáticamente</span>
-                  <span>•</span>
-                  <span>✓ Descarga y comparte en TikTok, Instagram, etc.</span>
-                </div>
+      <Card className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950 dark:to-blue-950 border-cyan-200">
+        <CardContent className="pt-6">
+          <div className="flex items-start space-x-4">
+            <div className="bg-primary/10 p-3 rounded-full">
+              <Camera className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
+                ¿Cómo funciona EcoShare?
+              </h3>
+              <p className="text-sm text-cyan-700 dark:text-cyan-300 mb-3">
+                Después de cada evento, los participantes pueden subir fotos al álbum compartido. Tras 3-5
+                días, todas las fotos se convierten automáticamente en un video memorable que puedes
+                descargar y compartir en tus redes sociales.
+              </p>
+              <div className="flex flex-wrap gap-2 text-xs text-cyan-600 dark:text-cyan-400">
+                <span>✓ Solo participantes pueden subir fotos</span>
+                <span>•</span>
+                <span>✓ Video generado automáticamente</span>
+                <span>•</span>
+                <span>✓ Descarga y comparte en TikTok, Instagram, etc.</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Hashtags trending + filtro */}
-        <div className="mb-6">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <Hash className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground mr-2">Trending del mes:</span>
-            {(["#LimpioMiraflores", "#DesafíoBarranco", "#EcoShare"]).map((tag) => (
-              <button key={tag} className="px-3 py-1 rounded-full border hover:bg-accent" onClick={()=>setSelectedTag(tag)}>
-                {tag}
-              </button>
-            ))}
-            {selectedTag && (
-              <button className="ml-auto text-xs underline" onClick={()=>setSelectedTag("")}>Limpiar filtro</button>
-            )}
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Albums Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {albums
-            .filter(a => !selectedTag || a.hashtags.includes(selectedTag))
-            .map((album) => (
+      <div className="mb-6">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <Hash className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground mr-2">Trending del mes:</span>
+          {(["#LimpioMiraflores", "#DesafíoBarranco", "#EcoShare"]).map((tag) => (
+            <button key={tag} className="px-3 py-1 rounded-full border hover:bg-accent" onClick={() => setSelectedTag(tag)}>
+              {tag}
+            </button>
+          ))}
+          {selectedTag && (
+            <button className="ml-auto text-xs underline" onClick={() => setSelectedTag("")}>Limpiar filtro</button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {albums
+          .filter(a => !selectedTag || a.hashtags.includes(selectedTag))
+          .map((album) => (
             <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Cover Image */}
               <div className="relative aspect-video bg-muted">
                 <Image
                   src={album.coverPhoto}
@@ -242,13 +216,12 @@ export default function EcoSharePage() {
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {album.hashtags.map(tag => (
-                    <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-xs cursor-pointer" onClick={()=>setSelectedTag(tag)}>{tag}</span>
+                    <span key={tag} className="px-2 py-0.5 rounded-full bg-muted text-xs cursor-pointer" onClick={() => setSelectedTag(tag)}>{tag}</span>
                   ))}
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {/* Photo Grid Preview */}
                 <div className="grid grid-cols-4 gap-1">
                   {album.recentPhotos.slice(0, 4).map((photo, idx) => (
                     <div key={idx} className="relative aspect-square bg-muted rounded overflow-hidden">
@@ -257,7 +230,6 @@ export default function EcoSharePage() {
                   ))}
                 </div>
 
-                {/* Stats */}
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span className="flex items-center">
                     <Users className="h-4 w-4 mr-1" />
@@ -277,7 +249,6 @@ export default function EcoSharePage() {
                   </span>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2">
                   {album.status === "collecting" && (
                     <Button variant="default" className="flex-1" size="sm">
@@ -296,7 +267,7 @@ export default function EcoSharePage() {
                       </Button>
                     </>
                   )}
-                  <Button variant="outline" size="sm" onClick={()=>{
+                  <Button variant="outline" size="sm" onClick={() => {
                     const tags = album.hashtags.join(' ')
                     const text = `${album.eventTitle} — EcoShare ${tags}`
                     const url = typeof window !== 'undefined' ? window.location.href : 'https://ecoplaya.local'
@@ -307,31 +278,27 @@ export default function EcoSharePage() {
                   </Button>
                 </div>
 
-                {/* Before/After & Testimonials for each campaign */}
                 <BeforeAfterSlider campaignId={album.id} />
                 <TestimonialsSection />
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {/* Concurso mensual */}
-        <div className="mt-10">
-          <PhotoContest />
-        </div>
-
-        {/* Empty State si no hay álbumes (comentado por ahora) */}
-        {albums.length === 0 && (
-          <div className="text-center py-16">
-            <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">No hay álbumes disponibles</h3>
-            <p className="text-muted-foreground mb-4">
-              Participa en eventos para empezar a crear recuerdos compartidos
-            </p>
-            <Button onClick={() => router.push("/events")}>Ver Eventos Disponibles</Button>
-          </div>
-        )}
       </div>
+
+      <div className="mt-10">
+        <PhotoContest />
+      </div>
+
+      {albums.length === 0 && (
+        <div className="text-center py-16">
+          <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+          <h3 className="text-lg font-semibold mb-2">No hay álbumes disponibles</h3>
+          <p className="text-muted-foreground mb-4">
+            Participa en eventos para empezar a crear recuerdos compartidos
+          </p>
+          <Button onClick={() => router.push("/dashboard/events")}>Ver Eventos Disponibles</Button>
+        </div>
+      )}
     </div>
   )
 }

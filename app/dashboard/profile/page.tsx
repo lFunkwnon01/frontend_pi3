@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { getCurrentUser, type User } from "@/lib/auth"
+import { useRef, useState, useEffect } from "react"
+import { getCurrentUser } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -24,9 +23,8 @@ import {
   Trophy,
 } from "lucide-react"
 
-export default function MyImpactPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const router = useRouter()
+export default function ProfilePage() {
+  const user = getCurrentUser()
   const { toast } = useToast()
   const reportRef = useRef<HTMLDivElement>(null)
   const shareRef = useRef<HTMLDivElement>(null)
@@ -59,15 +57,6 @@ export default function MyImpactPage() {
     { id: 5, title: "Líder Ambiental", description: "Organizó un evento de limpieza", icon: "👑", unlocked: false },
     { id: 6, title: "Eco Influencer", description: "Compartió 20 fotos en EcoShare", icon: "📱", unlocked: false },
   ]
-
-  useEffect(() => {
-    const currentUser = getCurrentUser()
-    if (!currentUser) {
-      router.push("/auth")
-      return
-    }
-    setUser(currentUser)
-  }, [router])
 
   // Comparativas vs comunidad
   const communityAvgTrashPerUser = Math.max(
@@ -173,19 +162,10 @@ export default function MyImpactPage() {
     link.click()
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <img src="/logo_png.png" alt="EcoPlaya" className="h-12 w-auto mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    )
-  }
+  if (!user) return null
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="space-y-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="sr-only">Mi Impacto</h1>
@@ -340,9 +320,8 @@ export default function MyImpactPage() {
                 {achievements.map((achievement) => (
                   <div
                     key={achievement.id}
-                    className={`flex flex-col items-center text-center p-3 rounded-lg border-2 transition-all ${
-                      achievement.unlocked ? "border-primary bg-primary/5" : "border-muted bg-muted/50 opacity-50"
-                    }`}
+                    className={`flex flex-col items-center text-center p-3 rounded-lg border-2 transition-all ${achievement.unlocked ? "border-primary bg-primary/5" : "border-muted bg-muted/50 opacity-50"
+                      }`}
                   >
                     <div className="text-3xl mb-2">{achievement.icon}</div>
                     <p className="text-xs font-medium">{achievement.title}</p>
